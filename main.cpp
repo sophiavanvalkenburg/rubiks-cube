@@ -11,8 +11,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "shader.h"
 
 using std::cout;
@@ -44,37 +42,6 @@ float fov = 45.0f;
 GLfloat textureMixAmount = 0.2f;
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
-
-void initTexture(GLuint &texture, GLenum textureUnit, GLenum wrapType)
-{
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapType);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapType);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void loadImage(GLuint &texture, const string& imageFilePath, GLenum pixelDataFormat)
-{
-    glBindTexture(GL_TEXTURE_2D, texture);
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load(imageFilePath.c_str(), &width, &height, &nrChannels, 0);
-
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, pixelDataFormat, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-	std::cout << "Failed to load texture" << std::endl;
-    }
-
-    stbi_image_free(data);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
 
 void bindVertices(GLuint &VAO, GLuint &VBO, GLfloat *vertices, size_t vertices_sz) 
 {
