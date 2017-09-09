@@ -77,8 +77,6 @@ public:
         this->Program = glCreateProgram();
         glAttachShader(this->Program, vertex);
         glAttachShader(this->Program, fragment);
-        glBindAttribLocation(this->Program, 0, "position"); 
-        glBindAttribLocation(this->Program, 1, "in_tex_coord"); 
         glLinkProgram(this->Program);
         // Print linking errors if any
         glGetProgramiv(this->Program, GL_LINK_STATUS, &success);

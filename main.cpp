@@ -85,10 +85,10 @@ void bindVertices(GLuint &VAO, GLuint &VBO, GLfloat *vertices, size_t vertices_s
     glBufferData(GL_ARRAY_BUFFER, vertices_sz, vertices, GL_STATIC_DRAW);
     // tell OpenGL how to interpret the vertex data
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
     glEnableVertexAttribArray(0);
     // Texture attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3*sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3*sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
     // unbind the VBO - we can do this because it was registered as VBO
@@ -99,18 +99,8 @@ void bindVertices(GLuint &VAO, GLuint &VBO, GLfloat *vertices, size_t vertices_s
 
 }
 
-void drawVertices(GLuint &shaderProgram, GLuint &VAO, GLuint &texture1, GLuint &texture2)
+void drawVertices(GLuint &shaderProgram, GLuint &VAO)
 {
-    GLint textureMixAmountLocation = glGetUniformLocation(shaderProgram, "uni_texture_mix_amt"); 
-    glUniform1f(textureMixAmountLocation, textureMixAmount);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-    glUniform1i(glGetUniformLocation(shaderProgram, "uni_texture1"), 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    glUniform1i(glGetUniformLocation(shaderProgram, "uni_texture2"), 1);
-
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
@@ -227,47 +217,47 @@ int main()
     Shader shader("vertex.vs", "fragment.fs");
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f, 0.1f, 0.1f, 0.1f, 
+        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
 
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
+        -0.5f, -0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+        -0.5f,  0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
+        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f
     };
 
     // create buffer for vertex shader
@@ -279,13 +269,6 @@ int main()
     glGenVertexArrays(1, &VAO);
 
     bindVertices(VAO, VBO, vertices, sizeof(vertices));
-
-    GLuint texture1, texture2;
-    initTexture(texture1, GL_TEXTURE0, GL_REPEAT);
-    initTexture(texture2, GL_TEXTURE1, GL_REPEAT);
-
-    loadImage(texture1, "container.jpg", GL_RGB);
-    loadImage(texture2, "awesomeface.png", GL_RGBA);
 
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -331,7 +314,7 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         // draw the triangle
-        drawVertices(shader.Program, VAO, texture1, texture2);
+        drawVertices(shader.Program, VAO);
 
         // uses double buffering to prevent flickering images
         glfwSwapBuffers(window);
@@ -345,4 +328,5 @@ int main()
     // close the window
     glfwTerminate();
     return 0;
+
 }
