@@ -184,47 +184,83 @@ int main()
     Shader shader("vertex.vs", "fragment.fs");
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f, -0.5f, 0.1f, 0.1f, 0.1f, 
-        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
+	/*** P:180 / Y:0 ***/
+        -0.15f, -0.15f, -0.15f, 0.0f, 1.0f, 1.0f, 
+        0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
+        0.15f,  0.15f, -0.15f, 0.0f, 1.0f, 1.0f,
+        0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
+        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
+        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
+	/*** P:0 / Y:0 ***/
+        -0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
+        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
+        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
+        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
+        -0.15f,  0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
+        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+	/*** P:0 / Y:90 ***/
+        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
+        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
+        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
+        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
+        -0.15f, -0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
+        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
 
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
+	/*** P:0 / Y:270 ***/
+        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
+        0.15f,  0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
+        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
+        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
+        0.15f, -0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
+        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f, -0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
-        -0.5f, -0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
+	/*** P:270 / Y:0 ***/
+        -0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
+        0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
+        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
+        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
+        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 1.0f,
+        -0.15f, -0.15f, -0.15f, 1.0f, 0.0f, 1.0f,
 
-        -0.5f,  0.5f, -0.5f, 0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        0.5f,  0.5f,  0.5f,  0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f,  0.5f, 0.1f, 0.1f, 0.1f,
-        -0.5f,  0.5f, -0.5f,  0.1f, 0.1f, 0.1f
+	/*** P:90 / Y:0 ***/
+        -0.15f,  0.15f, -0.15f, 1.0f, 1.0f, 0.0f,
+        0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f,
+        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
+        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
+        -0.15f,  0.15f,  0.15f, 1.0f, 1.0f, 0.0f,
+        -0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f
+    };
+
+    glm::vec3 boxPositions[] = {
+	glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.325f, 0.0f, 0.0f),
+	glm::vec3(-0.325f, 0.0f, 0.0f),
+	glm::vec3(0.0f, 0.325f, 0.0f),
+	glm::vec3(0.0f, -0.325f, 0.0f),
+	glm::vec3(0.325f, 0.325f, 0.0f),
+	glm::vec3(-0.325f, 0.325f, 0.0f),
+	glm::vec3(0.325f, -0.325f, 0.0f),
+	glm::vec3(-0.325f, -0.325f, 0.0f),
+	glm::vec3(0.0f, 0.0f, 0.325f), 
+        glm::vec3(0.325f, 0.0f, 0.325f),
+	glm::vec3(-0.325f, 0.0f, 0.325f), 
+	glm::vec3(0.0f, 0.325f, 0.325f),
+	glm::vec3(0.0f, -0.325f, 0.325f),
+	glm::vec3(0.325f, 0.325f, 0.325f),
+	glm::vec3(-0.325f, 0.325f, 0.325f),
+	glm::vec3(0.325f, -0.325f, 0.325f),
+	glm::vec3(-0.325f, -0.325f, 0.325f),
+	glm::vec3(0.0f, 0.0f, -0.325f), 
+        glm::vec3(0.325f, 0.0f, -0.325f),
+	glm::vec3(-0.325f, 0.0f, -0.325f), 
+	glm::vec3(0.0f, 0.325f, -0.325f),
+	glm::vec3(0.0f, -0.325f, -0.325f),
+	glm::vec3(0.325f, 0.325f, -0.325f),
+	glm::vec3(-0.325f, 0.325f, -0.325f),
+	glm::vec3(0.325f, -0.325f, -0.325f),
+	glm::vec3(-0.325f, -0.325f, -0.325f)
     };
 
     // create buffer for vertex shader
@@ -272,17 +308,21 @@ int main()
         GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    	// model matrix
-        glm::vec4 right = glm::inverse(model) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-        model = glm::rotate(model, pitch, glm::vec3(right.x, right.y, right.z));
-	glm::vec4 up = glm::inverse(model) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-        model = glm::rotate(model, yaw, glm::vec3(up.x, up.y, up.z)); 
-        GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	// model matrix
+   	glm::vec4 right = glm::inverse(model) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+   	model = glm::rotate(model, pitch, glm::vec3(right.x, right.y, right.z));
+   	glm::vec4 up = glm::inverse(model) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	model = glm::rotate(model, yaw, glm::vec3(up.x, up.y, up.z)); 
 
-        // draw the triangle
-        drawVertices(shader.Program, VAO);
 
+        for (int i=0; i<27; i++){
+	   glm::mat4 iModel;
+	   iModel = model * glm::translate(iModel, boxPositions[i]);
+	   GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(iModel));
+	   // draw the triangle
+	   drawVertices(shader.Program, VAO);
+	}
         // uses double buffering to prevent flickering images
         glfwSwapBuffers(window);
         glfwPollEvents();
