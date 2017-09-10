@@ -9,6 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "cube.h"
 
 using std::cout;
 using std::endl;
@@ -152,6 +153,55 @@ void setWindowParams(GLFWwindow* window)
     glViewport(0, 0, width, height);
 }
 
+void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::vec3 *boxPositions, GLuint &VAO)
+{
+	float currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	processInput(window);
+
+	// makes the background teal
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	// need glClear to flush the color buffer because 
+	// it does not clear the buffer automatically 
+	// so you get a weird image
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+
+	shader->Use();
+
+	// view matrix
+	glm::mat4 view;
+	view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	// projection matrix
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
+
+	GLuint viewLoc = glGetUniformLocation(shader->Program, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+	GLuint projectionLoc = glGetUniformLocation(shader->Program, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+	// model matrix
+	glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+	cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
+	glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
+
+	for (int i=0; i<numMiniCubes; i++){
+	   glm::mat4 miniCubeModel;
+	   miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
+	   GLuint modelLoc = glGetUniformLocation(shader->Program, "model");
+	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
+	   // draw the mini cube
+	   drawVertices(shader->Program, VAO);
+	}
+	// uses double buffering to prevent flickering images
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+}
+
 int main()
 {
     GLFWwindow* window = initWindow();
@@ -173,86 +223,11 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
     Shader shader("vertex.vs", "fragment.fs");
+    Cube cube;
 
-    GLfloat vertices[] = {
-	/*** P:180 / Y:0 ***/
-        -0.15f, -0.15f, -0.15f, 0.0f, 1.0f, 1.0f, 
-        0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        0.15f,  0.15f, -0.15f, 0.0f, 1.0f, 1.0f,
-        0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-
-	/*** P:0 / Y:0 ***/
-        -0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
-        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
-
-	/*** P:0 / Y:90 ***/
-        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-
-	/*** P:0 / Y:270 ***/
-        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f,  0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-
-	/*** P:270 / Y:0 ***/
-        -0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
-        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 1.0f,
-        -0.15f, -0.15f, -0.15f, 1.0f, 0.0f, 1.0f,
-
-	/*** P:90 / Y:0 ***/
-        -0.15f,  0.15f, -0.15f, 1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f, 1.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f
-    };
-
-    glm::vec3 boxPositions[] = {
-	glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.325f, 0.0f, 0.0f),
-	glm::vec3(-0.325f, 0.0f, 0.0f),
-	glm::vec3(0.0f, 0.325f, 0.0f),
-	glm::vec3(0.0f, -0.325f, 0.0f),
-	glm::vec3(0.325f, 0.325f, 0.0f),
-	glm::vec3(-0.325f, 0.325f, 0.0f),
-	glm::vec3(0.325f, -0.325f, 0.0f),
-	glm::vec3(-0.325f, -0.325f, 0.0f),
-	glm::vec3(0.0f, 0.0f, 0.325f), 
-        glm::vec3(0.325f, 0.0f, 0.325f),
-	glm::vec3(-0.325f, 0.0f, 0.325f), 
-	glm::vec3(0.0f, 0.325f, 0.325f),
-	glm::vec3(0.0f, -0.325f, 0.325f),
-	glm::vec3(0.325f, 0.325f, 0.325f),
-	glm::vec3(-0.325f, 0.325f, 0.325f),
-	glm::vec3(0.325f, -0.325f, 0.325f),
-	glm::vec3(-0.325f, -0.325f, 0.325f),
-	glm::vec3(0.0f, 0.0f, -0.325f), 
-        glm::vec3(0.325f, 0.0f, -0.325f),
-	glm::vec3(-0.325f, 0.0f, -0.325f), 
-	glm::vec3(0.0f, 0.325f, -0.325f),
-	glm::vec3(0.0f, -0.325f, -0.325f),
-	glm::vec3(0.325f, 0.325f, -0.325f),
-	glm::vec3(-0.325f, 0.325f, -0.325f),
-	glm::vec3(0.325f, -0.325f, -0.325f),
-	glm::vec3(-0.325f, -0.325f, -0.325f)
-    };
+    GLfloat *vertices = cube.getVertices();
+    glm::vec3 *boxPositions = cube.getPositions();
+    unsigned int numMiniCubes = cube.getNumPositions();
 
     // create buffer for vertex shader
     GLuint VBO; // vertex buffer objects
@@ -262,60 +237,14 @@ int main()
     GLuint VAO;
     glGenVertexArrays(1, &VAO);
 
-    bindVertices(VAO, VBO, vertices, sizeof(vertices));
+    bindVertices(VAO, VBO, vertices, cube.getSizeOfVertices());
 
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-    {
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        processInput(window);
-
-        // makes the background teal
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        // need glClear to flush the color buffer because 
-        // it does not clear the buffer automatically 
-        // so you get a weird image
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-        shader.Use();
-
-        // view matrix
-        glm::mat4 view;
-        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        // projection matrix
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
-
-        GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-        GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-	// model matrix
-   	glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-   	cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
-   	glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-	cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
-
-        for (int i=0; i<27; i++){
-	   glm::mat4 miniCubeModel;
-	   miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
-	   GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
-	   // draw the mini cube
-	   drawVertices(shader.Program, VAO);
-	}
-        // uses double buffering to prevent flickering images
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
+	loop(window, &shader, numMiniCubes, boxPositions, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
