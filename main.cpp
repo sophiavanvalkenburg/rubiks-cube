@@ -1,12 +1,9 @@
 #include <string>
 #include <iostream>
 #include <cmath>
-// GLEW - be sure to include it before GLFW b/c it contains the correct OpenGL header includes
 #define GLEW_STATIC
 #include <GL/glew.h>
-//GLFW
 #include <GLFW/glfw3.h>
-// glm is header only library so don't need to link it
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -19,16 +16,13 @@ using std::string;
 using std::min;
 using std::max;
 using std::sin;
+using std::abs;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool mouseBtnIsDown = false;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f); 
-
-glm::mat4 model;
+glm::mat4 cubeModel;
 float yaw = 0.0f;
 float pitch = 0.0f;
 
@@ -37,9 +31,6 @@ float lastX = 400;
 float lastY = 300;
 bool firstMouse = true;
 
-float fov = 45.0f;
-
-GLfloat textureMixAmount = 0.2f;
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
 
@@ -143,7 +134,7 @@ GLFWwindow* initWindow()
 
     // creating the window
     // nullptr is c++11 -- for earlier versions use NULL
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Rubik's Cube", nullptr, nullptr);
     if (window == nullptr)
     {
         glfwTerminate();
@@ -295,12 +286,11 @@ int main()
         shader.Use();
 
         // view matrix
-        // note that we're translating the scene in the reverse direction of where we want to move
         glm::mat4 view;
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // projection matrix
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(fov), screenWidth/screenHeight, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
 
         GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -309,18 +299,17 @@ int main()
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 	// model matrix
-   	glm::vec4 right = glm::inverse(model) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-   	model = glm::rotate(model, pitch, glm::vec3(right.x, right.y, right.z));
-   	glm::vec4 up = glm::inverse(model) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-	model = glm::rotate(model, yaw, glm::vec3(up.x, up.y, up.z)); 
-
+   	glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+   	cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
+   	glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
 
         for (int i=0; i<27; i++){
-	   glm::mat4 iModel;
-	   iModel = model * glm::translate(iModel, boxPositions[i]);
+	   glm::mat4 miniCubeModel;
+	   miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
 	   GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(iModel));
-	   // draw the triangle
+	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
+	   // draw the mini cube
 	   drawVertices(shader.Program, VAO);
 	}
         // uses double buffering to prevent flickering images
