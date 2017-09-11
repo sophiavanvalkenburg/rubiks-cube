@@ -153,7 +153,7 @@ void setWindowParams(GLFWwindow* window)
     glViewport(0, 0, width, height);
 }
 
-void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::vec3 *boxPositions, GLuint &VAO)
+void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, glm::vec3 *boxPositions, GLuint &VAO)
 {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -168,7 +168,7 @@ void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::ve
     // so you get a weird image
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    shader->Use();
+    shader.Use();
 
     // view matrix
     glm::mat4 view;
@@ -177,10 +177,10 @@ void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::ve
     glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
 
-    GLuint viewLoc = glGetUniformLocation(shader->Program, "view");
+    GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-    GLuint projectionLoc = glGetUniformLocation(shader->Program, "projection");
+    GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     // model matrix
@@ -192,10 +192,10 @@ void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::ve
     for (int i=0; i<numMiniCubes; i++){
         glm::mat4 miniCubeModel;
         miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
-        GLuint modelLoc = glGetUniformLocation(shader->Program, "model");
+        GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
         // draw the mini cube
-        drawVertices(shader->Program, VAO);
+        drawVertices(shader.Program, VAO);
     }
     // uses double buffering to prevent flickering images
     glfwSwapBuffers(window);
@@ -244,7 +244,7 @@ int main()
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-        loop(window, &shader, numMiniCubes, boxPositions, VAO);
+        loop(window, shader, numMiniCubes, boxPositions, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
