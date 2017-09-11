@@ -153,7 +153,7 @@ void setWindowParams(GLFWwindow* window)
     glViewport(0, 0, width, height);
 }
 
-void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, glm::vec3 *boxPositions, GLuint &VAO)
+void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, SubCube* subcubes, GLuint &VAO)
 {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -191,7 +191,7 @@ void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, glm::ve
 
     for (int i=0; i<numMiniCubes; i++){
         glm::mat4 miniCubeModel;
-        miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
+        miniCubeModel = cubeModel * glm::translate(miniCubeModel, subcubes[i].getPosition());
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
         // draw the mini cube
@@ -226,7 +226,7 @@ int main()
     Cube cube;
 
     GLfloat *vertices = cube.getVertices();
-    glm::vec3 *boxPositions = cube.getPositions();
+    SubCube* subcubes = cube.getSubCubes();
     unsigned int numMiniCubes = cube.getNumPositions();
 
     // create buffer for vertex shader
@@ -244,7 +244,7 @@ int main()
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-        loop(window, shader, numMiniCubes, boxPositions, VAO);
+        loop(window, shader, numMiniCubes, subcubes, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
