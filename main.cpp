@@ -78,47 +78,47 @@ void processInput(GLFWwindow* window)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
 
-  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
-     mouseBtnIsDown = true;
-  }
-  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
-     mouseBtnIsDown = false;
-     firstMouse = true;
-     pitch = 0.0f;
-     yaw = 0.0f;
-  }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+        mouseBtnIsDown = true;
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+        mouseBtnIsDown = false;
+        firstMouse = true;
+        pitch = 0.0f;
+        yaw = 0.0f;
+    }
 
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
-  if (mouseBtnIsDown){
-    if (firstMouse)
-    {
+    if (mouseBtnIsDown){
+        if (firstMouse)
+        {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
+
+        float xoffset = xpos - lastX;
+        float yoffset = ypos - lastY;
+
         lastX = xpos;
         lastY = ypos;
-        firstMouse = false;
+
+        float sensitivity = 0.5f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+
+        if (std::abs(xoffset) < 1)
+            xoffset = 0;
+        if (std::abs(yoffset) < 1)
+            yoffset = 0;
+
+        yaw = glm::radians(xoffset); 
+        pitch = glm::radians(yoffset);
+
     }
-
-    float xoffset = xpos - lastX;
-    float yoffset = ypos - lastY;
-
-    lastX = xpos;
-    lastY = ypos;
-
-    float sensitivity = 0.5f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-   
-    if (std::abs(xoffset) < 1)
-	xoffset = 0;
-    if (std::abs(yoffset) < 1)
-	yoffset = 0;
-
-    yaw = glm::radians(xoffset); 
-    pitch = glm::radians(yoffset);
-
-  }
 }
 
 GLFWwindow* initWindow()
@@ -155,51 +155,51 @@ void setWindowParams(GLFWwindow* window)
 
 void loop(GLFWwindow *window, Shader *shader, unsigned int numMiniCubes, glm::vec3 *boxPositions, GLuint &VAO)
 {
-	float currentFrame = glfwGetTime();
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
 
-	processInput(window);
+    processInput(window);
 
-	// makes the background teal
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	// need glClear to flush the color buffer because 
-	// it does not clear the buffer automatically 
-	// so you get a weird image
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+    // makes the background teal
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    // need glClear to flush the color buffer because 
+    // it does not clear the buffer automatically 
+    // so you get a weird image
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-	shader->Use();
+    shader->Use();
 
-	// view matrix
-	glm::mat4 view;
-	view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	// projection matrix
-	glm::mat4 projection;
-	projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
+    // view matrix
+    glm::mat4 view;
+    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    // projection matrix
+    glm::mat4 projection;
+    projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
 
-	GLuint viewLoc = glGetUniformLocation(shader->Program, "view");
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    GLuint viewLoc = glGetUniformLocation(shader->Program, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-	GLuint projectionLoc = glGetUniformLocation(shader->Program, "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    GLuint projectionLoc = glGetUniformLocation(shader->Program, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-	// model matrix
-	glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
-	cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
-	glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
-	cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
+    // model matrix
+    glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
+    glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
 
-	for (int i=0; i<numMiniCubes; i++){
-	   glm::mat4 miniCubeModel;
-	   miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
-	   GLuint modelLoc = glGetUniformLocation(shader->Program, "model");
-	   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
-	   // draw the mini cube
-	   drawVertices(shader->Program, VAO);
-	}
-	// uses double buffering to prevent flickering images
-	glfwSwapBuffers(window);
-	glfwPollEvents();
+    for (int i=0; i<numMiniCubes; i++){
+        glm::mat4 miniCubeModel;
+        miniCubeModel = cubeModel * glm::translate(miniCubeModel, boxPositions[i]);
+        GLuint modelLoc = glGetUniformLocation(shader->Program, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
+        // draw the mini cube
+        drawVertices(shader->Program, VAO);
+    }
+    // uses double buffering to prevent flickering images
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 }
 
 int main()
@@ -219,7 +219,7 @@ int main()
     }
 
     setWindowParams(window);
-    
+
     glEnable(GL_DEPTH_TEST);
 
     Shader shader("vertex.vs", "fragment.fs");
@@ -244,7 +244,7 @@ int main()
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-	loop(window, &shader, numMiniCubes, boxPositions, VAO);
+        loop(window, &shader, numMiniCubes, boxPositions, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
