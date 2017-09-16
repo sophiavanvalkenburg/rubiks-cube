@@ -184,9 +184,9 @@ void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, SubCube
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
     // model matrix
-    glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
-    glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
 
     for (int i=0; i<numMiniCubes; i++){
