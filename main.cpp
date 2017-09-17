@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 #include <iostream>
 #include <cmath>
 #define GLEW_STATIC
@@ -33,6 +34,7 @@ float cubeYaw = 0.0f;
 float cubePitch = 0.0f;
 
 /*** face movement ***/
+std::vector<glm::mat4> subcubeModels;
 glm::vec3 X_AXIS = glm::vec3(1.0f, 0.0f, 0.0f);
 glm::vec3 Y_AXIS = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 Z_AXIS = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -232,14 +234,12 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
     glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     cubeModel = glm::rotate(cubeModel, cubeYaw, glm::vec3(up.x, up.y, up.z)); 
 
-    glm::mat4 subcubeModel;
-    subcubeModel = glm::rotate(subcubeModel, facePitch, faceRotationAxis);
-
     std::vector<SubCube> subcubes = cube.getSubCubes();
 
     for (int i=0; i<subcubes.size(); i++){
-        glm::mat4 transformSubCubeModel;
         SubCube subcube = subcubes[i];
+        glm::mat4 transformSubCubeModel;
+        glm::mat4 subcubeModel = glm::rotate(subcubeModels[i], facePitch, faceRotationAxis);
         glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
         if (cube.faceContainsSubCube(0, i)){
             glm::vec3 faceCenter = cube.getFaceCenter(0);
@@ -251,6 +251,7 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
         } else {
             transformSubCubeModel = cubeModel * subcubePositionModel;
         }
+        subcubeModels[i] = subcubeModel;
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
@@ -285,7 +286,7 @@ int main()
     Cube cube;
 
     GLfloat *vertices = cube.getVertices();
-    unsigned int numMiniCubes = cube.getNumPositions();
+    subcubeModels.resize(cube.getNumPositions());
 
     // create buffer for vertex shader
     GLuint VBO; // vertex buffer objects
