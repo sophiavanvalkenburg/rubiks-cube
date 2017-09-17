@@ -1,6 +1,7 @@
 #ifndef CUBE_H
 #define CUBE_H
 
+#include <vector>
 #include <glm/glm.hpp>
 
 class SubCube
@@ -71,11 +72,9 @@ class Cube
 
     static const int NUM_SUBCUBES = 27;
 
-    SubCube subcubes[NUM_SUBCUBES];
+    std::vector<SubCube> subcubes;
 
-    SubCube* xFaces[3];
-    SubCube* yFaces[3];
-    SubCube* zFaces[3];
+    std::vector<std::vector<unsigned int>> faces;
     
     public:
         Cube(){
@@ -94,38 +93,28 @@ class Cube
             return NUM_SUBCUBES;
         }
 
-        SubCube* getSubCubes(){
+        std::vector<SubCube> getSubCubes(){
             return this->subcubes;
         }
 
-        bool faceContainsSubCube(uint faceId, uint subcubeId){
-            uint ids[9] = {2, 6, 8, 11, 15, 17, 20, 24, 26};
-            for (uint i=0; i<9; i++){
-                if (ids[i] == subcubeId) return true;
+        bool faceContainsSubCube(unsigned int faceId, unsigned int subcubeId){
+            for (unsigned int i=0; i<9; i++){
+                if (this->faces[0][i] == subcubeId) return true;
             }
             return false;
         }
 
-        glm::vec3 getFaceCenter(uint faceId){
+        glm::vec3 getFaceCenter(unsigned int faceId){
             return glm::vec3(-0.325f, 0.0f, 0.0f);
         }
     private:
         void initFaces(){
-            SubCube xFace1[9] = {
-                this->subcubes[2],
-                this->subcubes[6],
-                this->subcubes[8],
-                this->subcubes[11],
-                this->subcubes[15],
-                this->subcubes[17],
-                this->subcubes[20],
-                this->subcubes[24],
-                this->subcubes[26] 
+            this->faces = {
+                {2, 6, 8, 11, 15, 17, 20, 24, 26}
             };
-            this->xFaces[0] = xFace1; 
         }
         void initSubCubes(){
-            glm::vec3 positions[] = {
+            std::vector<glm::vec3> positions = {
                 glm::vec3(0.0f, 0.0f, 0.0f),
                 glm::vec3(0.325f, 0.0f, 0.0f),
                 glm::vec3(-0.325f, 0.0f, 0.0f),
@@ -154,8 +143,8 @@ class Cube
                 glm::vec3(0.325f, -0.325f, -0.325f),
                 glm::vec3(-0.325f, -0.325f, -0.325f)
             };
-            for (unsigned int i=0; i<NUM_SUBCUBES; i++){
-                this->subcubes[i] = SubCube(positions[i]);
+            for (unsigned int i=0; i<positions.size(); i++){
+                this->subcubes.push_back(SubCube(positions[i]));
             }
         }
 };

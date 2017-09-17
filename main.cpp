@@ -196,7 +196,7 @@ void setWindowParams(GLFWwindow* window)
     glViewport(0, 0, width, height);
 }
 
-void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, Cube& cube, GLuint &VAO)
+void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
 {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -235,9 +235,9 @@ void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, Cube& c
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, facePitch, faceRotationAxis);
 
-    SubCube* subcubes = cube.getSubCubes();
+    std::vector<SubCube> subcubes = cube.getSubCubes();
 
-    for (int i=0; i<numMiniCubes; i++){
+    for (int i=0; i<subcubes.size(); i++){
         glm::mat4 transformSubCubeModel;
         SubCube subcube = subcubes[i];
         glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
@@ -285,7 +285,6 @@ int main()
     Cube cube;
 
     GLfloat *vertices = cube.getVertices();
-    SubCube* subcubes = cube.getSubCubes();
     unsigned int numMiniCubes = cube.getNumPositions();
 
     // create buffer for vertex shader
@@ -303,7 +302,7 @@ int main()
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-        loop(window, shader, numMiniCubes, cube, VAO);
+        loop(window, shader, cube, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
