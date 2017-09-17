@@ -22,15 +22,27 @@ using std::abs;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool mouseBtnIsDown = false;
+bool faceRotationBtnIsDown = false;
 
+/*** cube movement ***/
 glm::mat4 cubeModel;
-float yaw = 0.0f;
-float pitch = 0.0f;
+float cubeLastX = 400;
+float cubeLastY = 300;
+bool cubeFirstMouse = true;
+float cubeYaw = 0.0f;
+float cubePitch = 0.0f;
 
-// mouse positions
-float lastX = 400;
-float lastY = 300;
-bool firstMouse = true;
+/*** face movement ***/
+glm::vec3 X_AXIS = glm::vec3(1.0f, 0.0f, 0.0f);
+glm::vec3 Y_AXIS = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3 Z_AXIS = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 faceRotationAxis = X_AXIS;
+float faceLastX = 400;
+float faceLastY = 300;
+bool faceFirstMouse = true;
+float faceYaw = 0.0f;
+float facePitch = 0.0f;
+float faceRoll = 0.0f;
 
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
@@ -65,6 +77,25 @@ void drawVertices(GLuint &shaderProgram, GLuint &VAO)
     glBindVertexArray(0);
 }
 
+void setRotationAxis(GLFWwindow* window){
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+        faceRotationAxis = X_AXIS;
+        faceRotationBtnIsDown = true;
+    } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+        faceRotationAxis = Y_AXIS;
+        faceRotationBtnIsDown = true;
+    } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+        faceRotationAxis = Z_AXIS;
+        faceRotationBtnIsDown = true;
+    } else {
+        faceRotationBtnIsDown = false;
+        faceFirstMouse = true;
+        facePitch = 0.0f;
+        faceYaw = 0.0f;
+        faceRoll = 0.0f;
+    }
+}
 
 void processInput(GLFWwindow* window)
 {
@@ -74,6 +105,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
+    setRotationAxis(window);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
@@ -83,41 +115,52 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
         mouseBtnIsDown = false;
-        firstMouse = true;
-        pitch = 0.0f;
-        yaw = 0.0f;
+        cubeFirstMouse = true;
+        cubePitch = 0.0f;
+        cubeYaw = 0.0f;
     }
 
+}
+
+float calculateOffset(float newPos, float oldPos){
+
+    float offset = newPos - oldPos;
+    float sensitivity = 0.5f;
+    offset *= sensitivity;
+
+    if (std::abs(offset) < 1)
+        offset = 0;
+
+    return offset;
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
     if (mouseBtnIsDown){
-        if (firstMouse)
+        if (cubeFirstMouse)
         {
-            lastX = xpos;
-            lastY = ypos;
-            firstMouse = false;
+            cubeLastX = xpos;
+            cubeLastY = ypos;
+            cubeFirstMouse = false;
         }
 
-        float xoffset = xpos - lastX;
-        float yoffset = ypos - lastY;
+        float xoffset = calculateOffset(xpos, cubeLastX);
+        float yoffset = calculateOffset(ypos, cubeLastY);
 
-        lastX = xpos;
-        lastY = ypos;
+        cubeLastX = xpos;
+        cubeLastY = ypos;
 
-        float sensitivity = 0.5f;
-        xoffset *= sensitivity;
-        yoffset *= sensitivity;
+        cubeYaw = glm::radians(xoffset); 
+        cubePitch = glm::radians(yoffset);
 
-        if (std::abs(xoffset) < 1)
-            xoffset = 0;
-        if (std::abs(yoffset) < 1)
-            yoffset = 0;
-
-        yaw = glm::radians(xoffset); 
-        pitch = glm::radians(yoffset);
-
+    } else if (faceRotationBtnIsDown){
+       if (faceFirstMouse){
+           faceLastY = ypos;
+           faceFirstMouse = false;
+       }
+       float yoffset = calculateOffset(ypos, faceLastY);
+       faceLastY = ypos;
+       facePitch = glm::radians(yoffset);
     }
 }
 
@@ -153,7 +196,7 @@ void setWindowParams(GLFWwindow* window)
     glViewport(0, 0, width, height);
 }
 
-void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, SubCube* subcubes, GLuint &VAO)
+void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, Cube& cube, GLuint &VAO)
 {
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -185,15 +228,31 @@ void loop(GLFWwindow *window, Shader &shader, unsigned int numMiniCubes, SubCube
 
     // model matrix
     glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    cubeModel = glm::rotate(cubeModel, pitch, glm::vec3(right.x, right.y, right.z));
+    cubeModel = glm::rotate(cubeModel, cubePitch, glm::vec3(right.x, right.y, right.z));
     glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    cubeModel = glm::rotate(cubeModel, yaw, glm::vec3(up.x, up.y, up.z)); 
+    cubeModel = glm::rotate(cubeModel, cubeYaw, glm::vec3(up.x, up.y, up.z)); 
+
+    glm::mat4 subcubeModel;
+    subcubeModel = glm::rotate(subcubeModel, facePitch, faceRotationAxis);
+
+    SubCube* subcubes = cube.getSubCubes();
 
     for (int i=0; i<numMiniCubes; i++){
-        glm::mat4 miniCubeModel;
-        miniCubeModel = cubeModel * glm::translate(miniCubeModel, subcubes[i].getPosition());
+        glm::mat4 transformSubCubeModel;
+        SubCube subcube = subcubes[i];
+        glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
+        if (cube.faceContainsSubCube(0, i)){
+            glm::vec3 faceCenter = cube.getFaceCenter(0);
+            glm::mat4 translateSubCubeModel;
+            glm::mat4 inverseTranslateSubCubeModel;
+            translateSubCubeModel = glm::translate(translateSubCubeModel, faceCenter);
+            inverseTranslateSubCubeModel = glm::inverse(translateSubCubeModel);
+            transformSubCubeModel = cubeModel * inverseTranslateSubCubeModel * subcubeModel * translateSubCubeModel * subcubePositionModel;
+        } else {
+            transformSubCubeModel = cubeModel * subcubePositionModel;
+        }
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(miniCubeModel));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
         drawVertices(shader.Program, VAO);
     }
@@ -244,7 +303,7 @@ int main()
 
     // the "game loop"
     while(!glfwWindowShouldClose(window))
-        loop(window, shader, numMiniCubes, subcubes, VAO);
+        loop(window, shader, numMiniCubes, cube, VAO);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
