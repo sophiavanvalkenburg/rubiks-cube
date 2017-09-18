@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -34,17 +35,13 @@ float cubeYaw = 0.0f;
 float cubePitch = 0.0f;
 
 /*** face movement ***/
-std::vector<glm::mat4> subcubeModels;
 glm::vec3 X_AXIS = glm::vec3(1.0f, 0.0f, 0.0f);
 glm::vec3 Y_AXIS = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 Z_AXIS = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 faceRotationAxis = X_AXIS;
-float faceLastX = 400;
+float faceRotationAngle = 0.0f;
 float faceLastY = 300;
 bool faceFirstMouse = true;
-float faceYaw = 0.0f;
-float facePitch = 0.0f;
-float faceRoll = 0.0f;
 
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
@@ -93,9 +90,6 @@ void setRotationAxis(GLFWwindow* window){
     } else {
         faceRotationBtnIsDown = false;
         faceFirstMouse = true;
-        facePitch = 0.0f;
-        faceYaw = 0.0f;
-        faceRoll = 0.0f;
     }
 }
 
@@ -162,7 +156,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos){
        }
        float yoffset = calculateOffset(ypos, faceLastY);
        faceLastY = ypos;
-       facePitch = glm::radians(yoffset);
+       faceRotationAngle += glm::radians(yoffset);
     }
 }
 
@@ -196,6 +190,10 @@ void setWindowParams(GLFWwindow* window)
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
+}
+
+float getNearestValidAngle(float angle){
+    return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
 }
 
 void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
@@ -236,10 +234,11 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
 
     std::vector<SubCube> subcubes = cube.getSubCubes();
 
+    glm::mat4 subcubeModel;
+    subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(faceRotationAngle), faceRotationAxis);
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];
         glm::mat4 transformSubCubeModel;
-        glm::mat4 subcubeModel = glm::rotate(subcubeModels[i], facePitch, faceRotationAxis);
         glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
         if (cube.faceContainsSubCube(0, i)){
             glm::vec3 faceCenter = cube.getFaceCenter(0);
@@ -251,7 +250,6 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
         } else {
             transformSubCubeModel = cubeModel * subcubePositionModel;
         }
-        subcubeModels[i] = subcubeModel;
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
@@ -286,7 +284,6 @@ int main()
     Cube cube;
 
     GLfloat *vertices = cube.getVertices();
-    subcubeModels.resize(cube.getNumPositions());
 
     // create buffer for vertex shader
     GLuint VBO; // vertex buffer objects
