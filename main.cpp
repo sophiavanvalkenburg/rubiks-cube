@@ -13,13 +13,6 @@
 #include "shader.h"
 #include "cube.h"
 
-using std::cout;
-using std::endl;
-using std::string;
-using std::min;
-using std::max;
-using std::sin;
-using std::abs;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
