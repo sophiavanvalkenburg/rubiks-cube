@@ -19,6 +19,9 @@ float lastFrame = 0.0f;
 bool mouseBtnIsDown = false;
 bool faceRotationBtnIsDown = false;
 
+glm::mat4 view;
+glm::mat4 projection;
+
 /*** cube movement ***/
 glm::mat4 cubeModel;
 float cubeLastX = 400;
@@ -123,8 +126,32 @@ float calculateOffset(float newPos, float oldPos){
     return offset;
 }
 
+float normalizedDeviceCoord(float coord, float maxCoord, float dir){
+    // coord: mouse x or y coord
+    // maxCoord: screen width or height
+    // dir: 1 or -1
+    return dir * ( 2 * coord / maxCoord - 1.0f );
+}
+
+glm::vec3 rayCast(double xpos, double ypos){
+    // convert mouse to clip coords
+    float ndcX = normalizedDeviceCoord(xpos, screenWidth, 1.0f);
+    float ndcY = normalizedDeviceCoord(ypos, screenHeight, -1.0f);
+    glm::vec4 clipCoords = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
+    // convert clip to camera coords
+    glm::vec4 camCoords = glm::inverse(projection) * clipCoords;
+    camCoords = glm::vec4(camCoords.x, camCoords.y, -1.0f, 0.0f);
+    // convert camera to world coords
+    glm::vec4 worldCoordsTmp = glm::inverse(view) * camCoords;
+    glm::vec3 worldCoords = glm::normalize(glm::vec3(worldCoordsTmp.x, worldCoordsTmp.y, worldCoordsTmp.z));
+    return worldCoords;
+}
+
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
+    glm::vec3 worldPos = rayCast(xpos, ypos);
+    std::cout << worldPos.x << " " << worldPos.y << " " << worldPos.z << std::endl;
+    
     if (mouseBtnIsDown){
         if (cubeFirstMouse)
         {
@@ -207,11 +234,10 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
     shader.Use();
 
     // view matrix
-    glm::mat4 view;
     view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     // projection matrix
-    glm::mat4 projection;
     projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
+
 
     GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
