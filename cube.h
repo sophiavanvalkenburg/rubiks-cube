@@ -186,7 +186,6 @@ class Cube
                 addSubCubeToFace(yPosToIndexMap, pos.y, s);
                 addSubCubeToFace(zPosToIndexMap, pos.z, s);
             }
-            printFaces();
         }
         void initSubCubes(){
             std::vector<glm::vec3> positions = {
