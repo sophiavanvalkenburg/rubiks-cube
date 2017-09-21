@@ -19,8 +19,9 @@ float lastFrame = 0.0f;
 bool mouseBtnIsDown = false;
 bool faceRotationBtnIsDown = false;
 
-glm::mat4 view;
-glm::mat4 projection;
+double mouseX;
+double mouseY;
+float MIN_EPSILON = 1e-6;
 
 /*** cube movement ***/
 glm::mat4 cubeModel;
@@ -133,7 +134,7 @@ float normalizedDeviceCoord(float coord, float maxCoord, float dir){
     return dir * ( 2 * coord / maxCoord - 1.0f );
 }
 
-glm::vec3 rayCast(double xpos, double ypos){
+glm::vec3 createWorldRay(double xpos, double ypos, glm::mat4 projection, glm::mat4 view){
     // convert mouse to clip coords
     float ndcX = normalizedDeviceCoord(xpos, screenWidth, 1.0f);
     float ndcY = normalizedDeviceCoord(ypos, screenHeight, -1.0f);
@@ -149,9 +150,9 @@ glm::vec3 rayCast(double xpos, double ypos){
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos){
 
-    glm::vec3 worldPos = rayCast(xpos, ypos);
-    std::cout << worldPos.x << " " << worldPos.y << " " << worldPos.z << std::endl;
-    
+    mouseX = xpos;
+    mouseY = ypos;
+
     if (mouseBtnIsDown){
         if (cubeFirstMouse)
         {
@@ -216,6 +217,30 @@ float getNearestValidAngle(float angle){
     return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
 }
 
+bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
+    // origin: camera position
+    // intersectRay: direction of ray from origin
+    // planeNormal: direction of plane (collision direction)
+    // planeDistance: distance from plane to origin (will be negative since planeNormal is pointing away from plane)
+    float rayAndNormalDotProduct = glm::dot(intersectRay, planeNormal);
+    if (std::abs(rayAndNormalDotProduct) <= MIN_EPSILON) return false;
+    float originAndNormalDotProduct = glm::dot(origin, planeNormal);
+    float intersectDistance = -1 * (originAndNormalDotProduct + planeDistance) / rayAndNormalDotProduct;
+    glm::vec3 intersectPoint = origin + glm::vec3(intersectRay.x * intersectDistance, intersectRay.y * intersectDistance, intersectRay.z * intersectDistance);
+    out.x = intersectPoint.x;
+    out.y = intersectPoint.y;
+    out.z = intersectPoint.z;
+    return true;
+}
+
+/*
+SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
+    std::vector<glm::vec3> planes = {
+        glm::vec3()   
+    }    
+}
+*/
+
 void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
 {
     float currentFrame = glfwGetTime();
@@ -234,10 +259,9 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
     shader.Use();
 
     // view matrix
-    view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     // projection matrix
-    projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
-
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
 
     GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -255,6 +279,13 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
 
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(faceRotationAngle), faceRotationAxis);
+
+    glm::vec3 mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
+    //SubCube intersectedSubCube = getIntersectedSubCube(mouseWorldPos);
+    glm::vec3 testPoint;
+    intersectPlane(testPoint, glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f), -0.15f);
+    std::cout << testPoint.x << " " << testPoint.y << " " << testPoint.z << std::endl;
+
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];
         glm::mat4 transformSubCubeModel;
