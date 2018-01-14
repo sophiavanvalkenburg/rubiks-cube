@@ -100,6 +100,12 @@ void setRotationAxis(GLFWwindow* window){
     }
 }
 
+void resetAll()
+{
+    cubeModel = glm::mat4();
+    mouseClicks = std::vector<glm::vec3>();
+}
+
 void processInput(GLFWwindow* window)
 {
     float cameraSpeed = 2.5f * deltaTime;
@@ -107,6 +113,8 @@ void processInput(GLFWwindow* window)
     // escape key closes application
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        resetAll(); 
 
     setRotationAxis(window);
 }
