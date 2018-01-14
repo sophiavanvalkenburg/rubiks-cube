@@ -14,6 +14,8 @@
 #include "cube.h"
 
 
+std::vector<glm::vec3> mouseClicks;
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 bool mouseBtnIsDown = false;
@@ -22,6 +24,7 @@ bool faceRotationBtnIsDown = false;
 double mouseX;
 double mouseY;
 float MIN_EPSILON = 1e-6;
+glm::vec3 mouseWorldPos;
 
 /*** cube movement ***/
 glm::mat4 cubeModel;
@@ -111,6 +114,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         cubeFirstMouse = true;
         cubePitch = 0.0f;
         cubeYaw = 0.0f;
+
+        mouseClicks.push_back(mouseWorldPos);
     }
 
 }
@@ -241,34 +246,9 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 }
 */
 
-void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
+
+void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO)
 {
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
-
-    processInput(window);
-
-    // makes the background teal
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    // need glClear to flush the color buffer because 
-    // it does not clear the buffer automatically 
-    // so you get a weird image
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-
-    shader.Use();
-
-    // view matrix
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    // projection matrix
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
-
-    GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-    GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
     // model matrix
     glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     cubeModel = glm::rotate(cubeModel, cubePitch, glm::vec3(right.x, right.y, right.z));
@@ -305,6 +285,27 @@ void loop(GLFWwindow *window, Shader &shader, Cube& cube, GLuint &VAO)
         // draw the mini cube
         drawVertices(shader.Program, VAO);
     }
+    
+}
+
+void beginLoop(GLFWwindow *window) 
+{
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+
+    processInput(window);
+
+    // makes the background teal
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    // need glClear to flush the color buffer because 
+    // it does not clear the buffer automatically 
+    // so you get a weird image
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+}
+
+void endLoop(GLFWwindow *window)
+{
     // uses double buffering to prevent flickering images
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -333,7 +334,7 @@ int main()
     Shader shader("vertex.vs", "fragment.fs");
     Cube cube;
 
-    GLfloat *vertices = cube.getVertices();
+    GLfloat *cubeVertices = cube.getVertices();
 
     // create buffer for vertex shader
     GLuint VBO; // vertex buffer objects
@@ -343,14 +344,29 @@ int main()
     GLuint VAO;
     glGenVertexArrays(1, &VAO);
 
-    bindVertices(VAO, VBO, vertices, cube.getSizeOfVertices());
-
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
-    // the "game loop"
+        // the "game loop"
     while(!glfwWindowShouldClose(window))
-        loop(window, shader, cube, VAO);
+        beginLoop(window);
+        bindVertices(VAO, VBO, cubeVertices, cube.getSizeOfVertices());
+        // view matrix
+        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        // projection matrix
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
+
+        shader.Use();
+
+        GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+        GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+        drawCubes(shader, cube, view, projection, VAO);
+        //drawMouseClicks(shader, line, view, projection, VAO);
+        endLoop(window);
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
