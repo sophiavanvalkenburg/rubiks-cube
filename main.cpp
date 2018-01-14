@@ -330,8 +330,6 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
     glm::vec4 max4 = cubeModel * glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
     glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
 
-
->>>>>>> 2922fbb... test code for intersect face
     glm::vec3 testPoint;
     bool hit = intersectSubCube(testPoint, min, max, camPos, intersectRay, planeNormal, planeDistance);
     printVec3(min);
