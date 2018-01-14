@@ -229,6 +229,15 @@ float getNearestValidAngle(float angle){
     return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
 }
 
+void copyVec3(glm::vec3 &out, glm::vec3 &v){
+    out.x = v.x;
+    out.y = v.y;
+    out.z = v.z;
+}
+
+void printVec3(glm::vec3 &v){
+    std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+}
 bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
     // origin: camera position
     // intersectRay: direction of ray from origin
@@ -239,9 +248,28 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     float originAndNormalDotProduct = glm::dot(origin, planeNormal);
     float intersectDistance = -1 * (originAndNormalDotProduct + planeDistance) / rayAndNormalDotProduct;
     glm::vec3 intersectPoint = origin + glm::vec3(intersectRay.x * intersectDistance, intersectRay.y * intersectDistance, intersectRay.z * intersectDistance);
-    out.x = intersectPoint.x;
-    out.y = intersectPoint.y;
-    out.z = intersectPoint.z;
+    copyVec3(out, intersectPoint);
+    return true;
+}
+
+bool gt(float a, float b){
+    return a - b > MIN_EPSILON;
+}
+
+bool lt(float a, float b){
+    return a - b < MIN_EPSILON;
+}
+
+bool eq(float a, float b){
+    return a - b < MIN_EPSILON && b - a < MIN_EPSILON;
+}
+
+bool intersectSubCube(glm::vec3 &out, glm::vec3 min, glm::vec3 max, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
+    glm::vec3 intersectPoint;
+    if (!intersectPlane(intersectPoint, origin, intersectRay, planeNormal, planeDistance)) return false;
+    if (lt(intersectPoint.x, min.x) || lt(intersectPoint.y, min.y) || lt(intersectPoint.z, min.z) ||
+        gt(intersectPoint.x, max.x) || gt(intersectPoint.y, max.y) || gt(intersectPoint.z, max.z)) return false;
+    copyVec3(out, intersectPoint);
     return true;
 }
 
@@ -284,10 +312,37 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(faceRotationAngle), faceRotationAxis);
 
+<<<<<<< HEAD
     //SubCube intersectedSubCube = getIntersectedSubCube(mouseWorldPos);
+=======
+    mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
+
+    //glm::vec4 camPos4 = cubeModel * glm::vec4(0.0f, 0.0f, 3.0f, 1.0f);
+    //glm::vec3 camPos = glm::vec3(camPos4.x / camPos4.w, camPos4.y / camPos4.w, camPos4.z / camPos4.w);
+    glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    //glm::vec4 intersectRay4 = cubeModel * glm::vec4(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z, 1.0f);
+    //glm::vec3 intersectRay = glm::vec3(intersectRay4.x / intersectRay4.w, intersectRay4.y / intersectRay4.w, intersectRay4.z / intersectRay4.w);
+    glm::vec3 intersectRay = mouseWorldPos;
+    printVec3(intersectRay);
+    glm::vec4 planeNormal4 = cubeModel * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); 
+    glm::vec3 planeNormal = glm::vec3(planeNormal4.x / planeNormal4.w, planeNormal4.y / planeNormal4.w, planeNormal4.z / planeNormal4.w);
+        float planeDistance = -0.15f;
+
+    glm::vec4 min4 = cubeModel * glm::vec4(-0.15f, -0.15f, -0.15f, 1.0f);
+    glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
+    glm::vec4 max4 = cubeModel * glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+    glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
+
+
+>>>>>>> 2922fbb... test code for intersect face
     glm::vec3 testPoint;
-    intersectPlane(testPoint, glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f), -0.15f);
-    std::cout << testPoint.x << " " << testPoint.y << " " << testPoint.z << std::endl;
+    bool hit = intersectSubCube(testPoint, min, max, camPos, intersectRay, planeNormal, planeDistance);
+    printVec3(min);
+    printVec3(max);
+    printVec3(testPoint);
+    if (hit){
+        std::cout << "HIT" << std::endl;
+    }
 
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];

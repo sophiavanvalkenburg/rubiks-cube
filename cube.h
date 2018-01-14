@@ -189,7 +189,7 @@ class Cube
         }
         void initSubCubes(){
             std::vector<glm::vec3> positions = {
-                glm::vec3(0.0f, 0.0f, 0.0f),
+                glm::vec3(0.0f, 0.0f, 0.0f)/*,
                 glm::vec3(0.325f, 0.0f, 0.0f),
                 glm::vec3(-0.325f, 0.0f, 0.0f),
                 glm::vec3(0.0f, 0.325f, 0.0f),
@@ -216,6 +216,7 @@ class Cube
                 glm::vec3(-0.325f, 0.325f, -0.325f),
                 glm::vec3(0.325f, -0.325f, -0.325f),
                 glm::vec3(-0.325f, -0.325f, -0.325f)
+                */
             };
             for (unsigned int i=0; i<positions.size(); i++){
                 this->subcubes.push_back(SubCube(positions[i], i));
