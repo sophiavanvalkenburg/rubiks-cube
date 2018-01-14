@@ -69,10 +69,17 @@ void bindVertices(GLuint &VAO, GLuint &VBO, GLfloat *vertices, size_t vertices_s
 
 }
 
-void drawVertices(GLuint &shaderProgram, GLuint &VAO)
+void drawCubeVertices(GLuint &VAO)
 {
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
+void drawLineVertixes(GLuint &VAO)
+{
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_LINE_STRIP, 0, 2);
     glBindVertexArray(0);
 }
 
@@ -115,7 +122,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         cubePitch = 0.0f;
         cubeYaw = 0.0f;
 
-        mouseClicks.push_back(mouseWorldPos);
+        mouseClicks.push_back(glm::vec3(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z));
     }
 
 }
@@ -246,9 +253,26 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 }
 */
 
-
-void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO)
+void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
 {
+    GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cubeModel));
+
+    for (unsigned int i=0; i<mouseClicks.size(); i++){
+        GLfloat lineVertices[12] = {
+            0.0, 0.0f, 2.99f, 1.0f, 1.0f, 1.0f, 
+            mouseClicks[i].x, mouseClicks[i].y, mouseClicks[i].z,  1.0f, 1.0f, 1.0f
+        };
+        bindVertices(VAO, VBO, lineVertices, sizeof(lineVertices));
+        drawLineVertixes(VAO);
+    }
+}
+
+
+void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO, GLuint &VBO)
+{
+    bindVertices(VAO, VBO, cube.getVertices(), cube.getSizeOfVertices());
+
     // model matrix
     glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     cubeModel = glm::rotate(cubeModel, cubePitch, glm::vec3(right.x, right.y, right.z));
@@ -260,7 +284,6 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(faceRotationAngle), faceRotationAxis);
 
-    glm::vec3 mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
     //SubCube intersectedSubCube = getIntersectedSubCube(mouseWorldPos);
     glm::vec3 testPoint;
     intersectPlane(testPoint, glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f), -0.15f);
@@ -283,7 +306,7 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
-        drawVertices(shader.Program, VAO);
+        drawCubeVertices(VAO);
     }
     
 }
@@ -334,8 +357,6 @@ int main()
     Shader shader("vertex.vs", "fragment.fs");
     Cube cube;
 
-    GLfloat *cubeVertices = cube.getVertices();
-
     // create buffer for vertex shader
     GLuint VBO; // vertex buffer objects
     glGenBuffers(1, &VBO);
@@ -348,9 +369,8 @@ int main()
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
         // the "game loop"
-    while(!glfwWindowShouldClose(window))
+    while(!glfwWindowShouldClose(window)){
         beginLoop(window);
-        bindVertices(VAO, VBO, cubeVertices, cube.getSizeOfVertices());
         // view matrix
         glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // projection matrix
@@ -364,9 +384,12 @@ int main()
         GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        drawCubes(shader, cube, view, projection, VAO);
-        //drawMouseClicks(shader, line, view, projection, VAO);
+        mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
+
+        drawCubes(shader, cube, view, projection, VAO, VBO);
+        drawMouseClicks(shader, VAO, VBO);
         endLoop(window);
+    }
 
     // deallocate resources
     glDeleteVertexArrays(1, &VAO);
