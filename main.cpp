@@ -312,9 +312,6 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(faceRotationAngle), faceRotationAxis);
 
-<<<<<<< HEAD
-    //SubCube intersectedSubCube = getIntersectedSubCube(mouseWorldPos);
-=======
     mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
 
     //glm::vec4 camPos4 = cubeModel * glm::vec4(0.0f, 0.0f, 3.0f, 1.0f);
