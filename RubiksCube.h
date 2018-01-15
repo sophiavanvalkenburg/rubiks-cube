@@ -74,97 +74,13 @@ class CubeFace
         }
 };
 
-class Cube
+
+class RubiksCube
 {
-    std::vector<glm::vec3> boundingBox = {
-        glm::vec3(-0.15f, -0.15f, -0.15f),
-        glm::vec3(0.15f, -0.15f, -0.15f),
-        glm::vec3(-0.15f, 0.15f, -0.15f),
-        glm::vec3(-0.15f, -0.15f, 0.15f),
-        glm::vec3(0.15f, 0.15f, -0.15f),
-        glm::vec3(-0.15f, 0.15f, 0.15f),
-        glm::vec3(0.15f, -0.15f, 0.15f),
-        glm::vec3(0.15f, 0.15f, 0.15f)
-    };
-    glm::vec3 boundingMin = glm::vec3(-0.15f, -0.15f, -0.15f);
-    glm::vec3 boundingMax = glm::vec3(0.15f, 0.15f, 0.15f);
-    GLfloat vertices[216] = {
-        /*** P:180 / Y:0 ***/
-        -0.15f, -0.15f, -0.15f, 0.0f, 1.0f, 1.0f, 
-        0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        0.15f,  0.15f, -0.15f, 0.0f, 1.0f, 1.0f,
-        0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 1.0f,
-
-        /*** P:0 / Y:0 ***/
-        -0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 0.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
-        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 0.0f,
-
-        /*** P:0 / Y:90 ***/
-        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f, -0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f, -0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f,  0.0f, 1.0f, 0.0f,
-
-        /*** P:0 / Y:270 ***/
-        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f,  0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-        0.15f,  0.15f,  0.15f,  0.0f, 0.0f, 1.0f,
-
-        /*** P:270 / Y:0 ***/
-        -0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f, -0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
-        0.15f, -0.15f,  0.15f,  1.0f, 0.0f, 1.0f,
-        -0.15f, -0.15f,  0.15f, 1.0f, 0.0f, 1.0f,
-        -0.15f, -0.15f, -0.15f, 1.0f, 0.0f, 1.0f,
-
-        /*** P:90 / Y:0 ***/
-        -0.15f,  0.15f, -0.15f, 1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
-        0.15f,  0.15f,  0.15f,  1.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f,  0.15f, 1.0f, 1.0f, 0.0f,
-        -0.15f,  0.15f, -0.15f,  1.0f, 1.0f, 0.0f
-    };
-
-    std::vector<SubCube> subcubes;
-
-    std::vector<CubeFace> faces;
-    
     public:
-        Cube(){
+        RubiksCube(){
             this->initSubCubes();
-            this->initFaces(); 
-        }
-        GLfloat* getVertices(){
-            return this->vertices;
-        } 
-
-        size_t getSizeOfVertices(){
-            return sizeof(this->vertices);
-        }
-
-        glm::vec3 getBoundingMin(){
-            return this->boundingMin;
-        }
-
-        glm::vec3 getBoundingMax(){
-            return this->boundingMax;
-        }
-
-        std::vector<glm::vec3> getBoundingBox(){
-            return this->boundingBox;
+            this->initFaces();  
         }
 
         std::vector<SubCube> getSubCubes(){
@@ -186,6 +102,9 @@ class Cube
         }
 
     private:
+        std::vector<SubCube> subcubes;
+        std::vector<CubeFace> faces;
+
         void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube s){
             unsigned int faceIndex = posMap[posCoord];
             if (faceIndex == 0){
@@ -246,5 +165,6 @@ class Cube
                 this->subcubes.push_back(SubCube(positions[i], i));
             }
         }
+
 };
 #endif
