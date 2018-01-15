@@ -305,7 +305,27 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
     }
 }
 
-void testIntersectPlane()
+std::vector<float> getCubeBoundingMinMax(Cube &cube){
+    std::vector<glm::vec3> boundingBox = cube.getBoundingBox();
+    std::vector<float> minmax = {100.0f, 100.0f, 100.0f, -100.0f, -100.0f, -100.0f};
+    for (unsigned int i=0; i<boundingBox.size(); i++){
+        glm::vec4 bound4 = cubeModel * glm::vec4(boundingBox[i].x, boundingBox[i].y, boundingBox[i].z, 1.0f);
+        glm::vec3 bound = glm::vec3(bound4.x / bound4.w, bound4.y / bound4.w, bound4.z / bound4.w);
+        if (bound.x < minmax[0] && bound.y < minmax[1] && bound.z < minmax[2]){
+            minmax[0] = bound.x;
+            minmax[1] = bound.y;
+            minmax[2] = bound.z;
+        }
+        if (bound.x > minmax[3] && bound.y > minmax[4] && bound.z > minmax[4]){
+            minmax[3] = bound.x;
+            minmax[4] = bound.y;
+            minmax[5] = bound.z;
+        }
+    }
+    return minmax;
+}
+
+void testIntersectPlane(Cube &cube)
 {
     glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
     
@@ -314,10 +334,9 @@ void testIntersectPlane()
     glm::vec3 planeNormal = glm::vec3(planeNormal4.x / planeNormal4.w, planeNormal4.y / planeNormal4.w, planeNormal4.z / planeNormal4.w);
         float planeDistance = -0.15f;
 
-    glm::vec4 min4 = cubeModel * glm::vec4(-0.15f, -0.15f, -0.15f, 1.0f);
-    glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
-    glm::vec4 max4 = cubeModel * glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
-    glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
+    std::vector<float> boundingMinMax = getCubeBoundingMinMax(cube);
+    glm::vec3 min = glm::vec3(boundingMinMax[0], boundingMinMax[1], boundingMinMax[2]);
+    glm::vec3 max = glm::vec3(boundingMinMax[3], boundingMinMax[4], boundingMinMax[5]);
 
     glm::vec3 testPoint;
     printVec3(min);
@@ -333,7 +352,9 @@ void testIntersectPlane()
 
 void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO, GLuint &VBO)
 {
-    bindVertices(VAO, VBO, cube.getVertices(), cube.getSizeOfVertices());
+    size_t cubeVerticesSize = cube.getSizeOfVertices();
+    GLfloat *cubeVertices = cube.getVertices();
+    bindVertices(VAO, VBO, cubeVertices, cubeVerticesSize);
 
     // model matrix
     glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -362,7 +383,7 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
         } else {
             transformSubCubeModel = cubeModel * subcubePositionModel;
         }
-        testIntersectPlane();
+        testIntersectPlane(cube);
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube

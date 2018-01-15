@@ -76,6 +76,18 @@ class CubeFace
 
 class Cube
 {
+    std::vector<glm::vec3> boundingBox = {
+        glm::vec3(-0.15f, -0.15f, -0.15f),
+        glm::vec3(0.15f, -0.15f, -0.15f),
+        glm::vec3(-0.15f, 0.15f, -0.15f),
+        glm::vec3(-0.15f, -0.15f, 0.15f),
+        glm::vec3(0.15f, 0.15f, -0.15f),
+        glm::vec3(-0.15f, 0.15f, 0.15f),
+        glm::vec3(0.15f, -0.15f, 0.15f),
+        glm::vec3(0.15f, 0.15f, 0.15f)
+    };
+    glm::vec3 boundingMin = glm::vec3(-0.15f, -0.15f, -0.15f);
+    glm::vec3 boundingMax = glm::vec3(0.15f, 0.15f, 0.15f);
     GLfloat vertices[216] = {
         /*** P:180 / Y:0 ***/
         -0.15f, -0.15f, -0.15f, 0.0f, 1.0f, 1.0f, 
@@ -141,6 +153,18 @@ class Cube
 
         size_t getSizeOfVertices(){
             return sizeof(this->vertices);
+        }
+
+        glm::vec3 getBoundingMin(){
+            return this->boundingMin;
+        }
+
+        glm::vec3 getBoundingMax(){
+            return this->boundingMax;
+        }
+
+        std::vector<glm::vec3> getBoundingBox(){
+            return this->boundingBox;
         }
 
         std::vector<SubCube> getSubCubes(){
