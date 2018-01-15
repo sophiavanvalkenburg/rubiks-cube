@@ -275,6 +275,7 @@ bool eq(float a, float b){
 bool intersectSubCube(glm::vec3 &out, glm::vec3 min, glm::vec3 max, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
     glm::vec3 intersectPoint;
     if (!intersectPlane(intersectPoint, origin, intersectRay, planeNormal, planeDistance)) return false;
+    printVec3(intersectPoint);
     if (lt(intersectPoint.x, min.x) || lt(intersectPoint.y, min.y) || lt(intersectPoint.z, min.z) ||
         gt(intersectPoint.x, max.x) || gt(intersectPoint.y, max.y) || gt(intersectPoint.z, max.z)) return false;
     copyVec3(out, intersectPoint);
@@ -304,6 +305,31 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
     }
 }
 
+void testIntersectPlane()
+{
+    glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    
+    glm::vec3 intersectRay = mouseWorldPos;
+    glm::vec4 planeNormal4 = cubeModel * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); 
+    glm::vec3 planeNormal = glm::vec3(planeNormal4.x / planeNormal4.w, planeNormal4.y / planeNormal4.w, planeNormal4.z / planeNormal4.w);
+        float planeDistance = -0.15f;
+
+    glm::vec4 min4 = cubeModel * glm::vec4(-0.15f, -0.15f, -0.15f, 1.0f);
+    glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
+    glm::vec4 max4 = cubeModel * glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+    glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
+
+    glm::vec3 testPoint;
+    printVec3(min);
+    bool hit = intersectSubCube(testPoint, min, max, camPos, intersectRay, planeNormal, planeDistance);
+    printVec3(max);
+    //printVec3(testPoint);
+    if (hit){
+        std::cout << "HIT" << std::endl;
+    }
+
+}
+
 
 void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO, GLuint &VBO)
 {
@@ -322,31 +348,6 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
 
     mouseWorldPos = createWorldRay(mouseX, mouseY, projection, view);
 
-    //glm::vec4 camPos4 = cubeModel * glm::vec4(0.0f, 0.0f, 3.0f, 1.0f);
-    //glm::vec3 camPos = glm::vec3(camPos4.x / camPos4.w, camPos4.y / camPos4.w, camPos4.z / camPos4.w);
-    glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    //glm::vec4 intersectRay4 = cubeModel * glm::vec4(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z, 1.0f);
-    //glm::vec3 intersectRay = glm::vec3(intersectRay4.x / intersectRay4.w, intersectRay4.y / intersectRay4.w, intersectRay4.z / intersectRay4.w);
-    glm::vec3 intersectRay = mouseWorldPos;
-    printVec3(intersectRay);
-    glm::vec4 planeNormal4 = cubeModel * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); 
-    glm::vec3 planeNormal = glm::vec3(planeNormal4.x / planeNormal4.w, planeNormal4.y / planeNormal4.w, planeNormal4.z / planeNormal4.w);
-        float planeDistance = -0.15f;
-
-    glm::vec4 min4 = cubeModel * glm::vec4(-0.15f, -0.15f, -0.15f, 1.0f);
-    glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
-    glm::vec4 max4 = cubeModel * glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
-    glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
-
-    glm::vec3 testPoint;
-    bool hit = intersectSubCube(testPoint, min, max, camPos, intersectRay, planeNormal, planeDistance);
-    printVec3(min);
-    printVec3(max);
-    printVec3(testPoint);
-    if (hit){
-        std::cout << "HIT" << std::endl;
-    }
-
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];
         glm::mat4 transformSubCubeModel;
@@ -361,6 +362,7 @@ void drawCubes(Shader &shader, Cube &cube, glm::mat4 view, glm::mat4 projection,
         } else {
             transformSubCubeModel = cubeModel * subcubePositionModel;
         }
+        testIntersectPlane();
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
