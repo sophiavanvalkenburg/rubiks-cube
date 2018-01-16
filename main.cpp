@@ -16,6 +16,7 @@
 
 
 std::vector<glm::vec3> mouseClicks;
+std::vector<glm::vec3> hits;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -46,6 +47,16 @@ bool faceFirstMouse = true;
 
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
+
+void copyVec3(glm::vec3 &out, glm::vec3 &v){
+    out.x = v.x;
+    out.y = v.y;
+    out.z = v.z;
+}
+
+void printVec3(glm::vec3 &v){
+    std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+}
 
 void bindVertices(GLuint &VAO, GLuint &VBO, const GLfloat *vertices, size_t vertices_sz) 
 {
@@ -84,6 +95,13 @@ void drawLineVertixes(GLuint &VAO)
     glBindVertexArray(0);
 }
 
+void drawPointVertices(GLuint &VAO, GLuint nVertices)
+{
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_POINTS, 0, nVertices);
+    glBindVertexArray(0);
+}
+
 void setRotationAxis(GLFWwindow* window){
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
@@ -105,6 +123,7 @@ void resetAll()
 {
     cubeModel = glm::mat4();
     mouseClicks = std::vector<glm::vec3>();
+    hits = std::vector<glm::vec3>();
 }
 
 void processInput(GLFWwindow* window)
@@ -131,7 +150,9 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         cubePitch = 0.0f;
         cubeYaw = 0.0f;
 
-        mouseClicks.push_back(glm::vec3(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z));
+        glm::vec4 mouseClick4 = glm::inverse(cubeModel) * glm::vec4(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z, 1.0f) ;
+        mouseClicks.push_back(glm::vec3(mouseClick4.x / mouseClick4.w, mouseClick4.y / mouseClick4.w, mouseClick4.z / mouseClick4.w));
+        //mouseClicks.push_back(glm::vec3(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z));
     }
 
 }
@@ -165,6 +186,7 @@ glm::vec3 createWorldRay(double xpos, double ypos, glm::mat4 projection, glm::ma
     camCoords = glm::vec4(camCoords.x, camCoords.y, -1.0f, 0.0f);
     // convert camera to world coords
     glm::vec4 worldCoordsTmp = glm::inverse(view) * camCoords;
+    //glm::vec3 worldCoords = glm::normalize(glm::vec3(worldCoordsTmp.x / worldCoordsTmp.w, worldCoordsTmp.y / worldCoordsTmp.w, worldCoordsTmp.z / worldCoordsTmp.w));
     glm::vec3 worldCoords = glm::normalize(glm::vec3(worldCoordsTmp.x, worldCoordsTmp.y, worldCoordsTmp.z));
     return worldCoords;
 }
@@ -238,16 +260,9 @@ float getNearestValidAngle(float angle){
     return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
 }
 
-void copyVec3(glm::vec3 &out, glm::vec3 &v){
-    out.x = v.x;
-    out.y = v.y;
-    out.z = v.z;
-}
 
-void printVec3(glm::vec3 &v){
-    std::cout << v.x << " " << v.y << " " << v.z << std::endl;
-}
-bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
+bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance)
+{
     // origin: camera position
     // intersectRay: direction of ray from origin
     // planeNormal: direction of plane (collision direction)
@@ -256,31 +271,69 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     if (std::abs(rayAndNormalDotProduct) <= MIN_EPSILON) return false;
     float originAndNormalDotProduct = glm::dot(origin, planeNormal);
     float intersectDistance = -1 * (originAndNormalDotProduct + planeDistance) / rayAndNormalDotProduct;
+    if (intersectDistance < 0) return false;
     glm::vec3 intersectPoint = origin + glm::vec3(intersectRay.x * intersectDistance, intersectRay.y * intersectDistance, intersectRay.z * intersectDistance);
     copyVec3(out, intersectPoint);
     return true;
-}
-
-bool gt(float a, float b){
-    return a - b > MIN_EPSILON;
-}
-
-bool lt(float a, float b){
-    return a - b < MIN_EPSILON;
 }
 
 bool eq(float a, float b){
     return a - b < MIN_EPSILON && b - a < MIN_EPSILON;
 }
 
-bool intersectSubCube(glm::vec3 &out, glm::vec3 min, glm::vec3 max, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance){
+bool gte(float a, float b){
+    return eq(a, b) || a - b > MIN_EPSILON;
+}
+
+bool lte(float a, float b){
+    return eq(a, b) || a - b < MIN_EPSILON;
+}
+/*
+bool pointIsInCube(glm::vec3 point){
+    std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
+    std::vector<glm::vec3> pointsOnFaces = CubeModel::getPointsOnFaces();
+    //glm::vec4 point4 = cubeModel * glm::vec4(point.x, point.y, point.z, 1.0f);
+    //point = glm::vec3(point4.x / point4.w, point4.y / point4.w, point4.z / point4.w);
+    bool res = true;
+    for (unsigned int i=0; i<normals.size(); i++){
+        glm::vec4 normal4 = cubeModel * glm::vec4(normals[i].x, normals[i].y, normals[i].z, 1.0f);
+        glm::vec3 normal = glm::vec3(normal4.x / normal4.w, normal4.y / normal4.w, normal4.z / normal4.w);
+        glm::vec4 pointOnFace4 = cubeModel * glm::vec4(pointsOnFaces[i].x, pointsOnFaces[i].y, pointsOnFaces[i].z, 1.0f);
+        glm::vec3 pointOnFace = glm::vec3(pointOnFace4.x / pointOnFace4.w, pointOnFace4.y / pointOnFace4.w, pointOnFace4.z / pointOnFace4.w);
+        glm::vec3 pointDiff = glm::vec3(pointOnFace.x - point.x, pointOnFace.y - point.y, pointOnFace.z - point.z);
+        std::cout << i << std::endl;
+        float dot = glm::dot(pointDiff, normal);
+        std::cout << dot << std::endl;
+        if (dot < 0) res = false;
+    }
+    return res;
+}
+*/
+
+bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
+{
+    const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
+    const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
-    if (!intersectPlane(intersectPoint, origin, intersectRay, planeNormal, planeDistance)) return false;
-    printVec3(intersectPoint);
-    if (lt(intersectPoint.x, min.x) || lt(intersectPoint.y, min.y) || lt(intersectPoint.z, min.z) ||
-        gt(intersectPoint.x, max.x) || gt(intersectPoint.y, max.y) || gt(intersectPoint.z, max.z)) return false;
-    copyVec3(out, intersectPoint);
-    return true;
+    for (unsigned int i=0; i<1; i++){
+        if (!intersectPlane(intersectPoint, origin, intersectRay, normals[i], -0.15f)) continue;
+        // test bounds for each plane
+        glm::vec4 max4 = cubeModel * glm::vec4(facesMinMax[i].x, facesMinMax[i].y, facesMinMax[i].z, 1.0f);
+        glm::vec4 min4 = cubeModel * glm::vec4(facesMinMax[i + 1].x, facesMinMax[i + 1].y, facesMinMax[i + 1].z, 1.0f);
+        glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
+        glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
+        std::cout << std::endl;
+        printVec3(min);
+        //printVec3(intersectPoint);
+        printVec3(max);
+        if (lte(intersectPoint.x, max.x) && lte(intersectPoint.y, max.y) && lte(intersectPoint.z, max.z) &&
+          gte(intersectPoint.x, min.x) && gte(intersectPoint.y, min.y) && gte(intersectPoint.z, min.z)) 
+        {
+            copyVec3(out, intersectPoint);
+            return true;
+        }
+    }
+    return false;
 }
 
 /*
@@ -291,14 +344,34 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 }
 */
 
+void drawHits(Shader &shader, GLuint &VAO, GLuint &VBO)
+{
+    unsigned int nVertices = hits.size() * 6;
+    GLfloat pointVertices[nVertices];
+    for (unsigned int i=0; i<hits.size(); i++){
+        unsigned int pInd = i * 6;
+        pointVertices[pInd] = hits[i].x;
+        pointVertices[pInd + 1] = hits[i].y;
+        pointVertices[pInd + 2] = hits[i].z;
+        pointVertices[pInd + 3] = 0.0f;
+        pointVertices[pInd + 4] = 0.0f;
+        pointVertices[pInd + 5] = 0.0f;
+    } 
+    bindVertices(VAO, VBO, pointVertices, sizeof(pointVertices));
+    drawPointVertices(VAO, nVertices);
+}
+
 void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
 {
-    GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cubeModel));
+    //GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+    //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cubeModel));
+
+    glm::vec4 cam4 = glm::inverse(cubeModel) * glm::vec4(0.0f, 0.0f, 2.99f, 1.0f);
+    glm::vec3 cam = glm::vec3(cam4.x / cam4.w, cam4.y / cam4.w, cam4.z / cam4.w);
 
     for (unsigned int i=0; i<mouseClicks.size(); i++){
         GLfloat lineVertices[12] = {
-            0.0, 0.0f, 2.99f, 1.0f, 1.0f, 1.0f, 
+            cam.x, cam.y, cam.z, 1.0f, 1.f, 1.0f, 
             mouseClicks[i].x, mouseClicks[i].y, mouseClicks[i].z,  1.0f, 1.0f, 1.0f
         };
         bindVertices(VAO, VBO, lineVertices, sizeof(lineVertices));
@@ -306,50 +379,23 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
     }
 }
 
-std::vector<float> getCubeBoundingMinMax(){
-    static std::vector<glm::vec3> boundingBox = CubeModel::getBoundingBox();
-    std::vector<float> minmax = {100.0f, 100.0f, 100.0f, -100.0f, -100.0f, -100.0f};
-    for (unsigned int i=0; i<boundingBox.size(); i++){
-        glm::vec4 bound4 = cubeModel * glm::vec4(boundingBox[i].x, boundingBox[i].y, boundingBox[i].z, 1.0f);
-        glm::vec3 bound = glm::vec3(bound4.x / bound4.w, bound4.y / bound4.w, bound4.z / bound4.w);
-        if (bound.x < minmax[0] && bound.y < minmax[1] && bound.z < minmax[2]){
-            minmax[0] = bound.x;
-            minmax[1] = bound.y;
-            minmax[2] = bound.z;
-        }
-        if (bound.x > minmax[3] && bound.y > minmax[4] && bound.z > minmax[4]){
-            minmax[3] = bound.x;
-            minmax[4] = bound.y;
-            minmax[5] = bound.z;
-        }
-    }
-    return minmax;
-}
-
 void testIntersectPlane()
 {
     glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
     
     glm::vec3 intersectRay = mouseWorldPos;
-    glm::vec4 planeNormal4 = cubeModel * glm::vec4(0.0f, 0.0f, 1.0f, 1.0f); 
-    glm::vec3 planeNormal = glm::vec3(planeNormal4.x / planeNormal4.w, planeNormal4.y / planeNormal4.w, planeNormal4.z / planeNormal4.w);
-        float planeDistance = -0.15f;
-
-    std::vector<float> boundingMinMax = getCubeBoundingMinMax();
-    glm::vec3 min = glm::vec3(boundingMinMax[0], boundingMinMax[1], boundingMinMax[2]);
-    glm::vec3 max = glm::vec3(boundingMinMax[3], boundingMinMax[4], boundingMinMax[5]);
-
     glm::vec3 testPoint;
-    printVec3(min);
-    bool hit = intersectSubCube(testPoint, min, max, camPos, intersectRay, planeNormal, planeDistance);
-    printVec3(max);
-    //printVec3(testPoint);
+    bool hit = intersectSubCube(testPoint, camPos, intersectRay);
     if (hit){
         std::cout << "HIT" << std::endl;
+        glm::vec3 out;
+        copyVec3(out, testPoint);
+        hits.push_back(out);
+    } else {
+        std::cout << "NO HIT" << std::endl;
     }
 
 }
-
 
 void drawCubes(Shader &shader, RubiksCube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO, GLuint &VBO)
 {
@@ -470,6 +516,7 @@ int main()
 
         drawCubes(shader, cube, view, projection, VAO, VBO);
         drawMouseClicks(shader, VAO, VBO);
+        drawHits(shader, VAO, VBO);
         endLoop(window);
     }
 
