@@ -58,6 +58,14 @@ void printVec3(glm::vec3 &v){
     std::cout << v.x << " " << v.y << " " << v.z << std::endl;
 }
 
+glm::vec3 mat4xVec3(glm::vec3 &out, const glm::mat4 &m, const glm::vec3 &v)
+{
+    glm::vec4 tmp = m * glm::vec4(v.x, v.y, v.z, 1.0f);
+    glm::vec3 v1 = glm::vec3(tmp.x / tmp.w, tmp.y / tmp.w, tmp.z / tmp.w);
+    copyVec3(out, v1);
+    return out;
+}
+
 void bindVertices(GLuint &VAO, GLuint &VBO, const GLfloat *vertices, size_t vertices_sz) 
 {
     // bind the VAO
@@ -150,9 +158,11 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         cubePitch = 0.0f;
         cubeYaw = 0.0f;
 
-        glm::vec4 mouseClick4 = glm::inverse(cubeModel) * glm::vec4(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z, 1.0f) ;
-        mouseClicks.push_back(glm::vec3(mouseClick4.x / mouseClick4.w, mouseClick4.y / mouseClick4.w, mouseClick4.z / mouseClick4.w));
+        glm::vec3 mouseClick;
+        glm::mat4 cubeModelInv = glm::inverse(cubeModel);
+        mouseClicks.push_back(mat4xVec3(mouseClick, cubeModelInv, mouseWorldPos));
         //mouseClicks.push_back(glm::vec3(mouseWorldPos.x, mouseWorldPos.y, mouseWorldPos.z));
+        
     }
 
 }
@@ -317,11 +327,11 @@ bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<1; i++){
         if (!intersectPlane(intersectPoint, origin, intersectRay, normals[i], -0.15f)) continue;
-        // test bounds for each plane
-        glm::vec4 max4 = cubeModel * glm::vec4(facesMinMax[i].x, facesMinMax[i].y, facesMinMax[i].z, 1.0f);
-        glm::vec4 min4 = cubeModel * glm::vec4(facesMinMax[i + 1].x, facesMinMax[i + 1].y, facesMinMax[i + 1].z, 1.0f);
-        glm::vec3 max = glm::vec3(max4.x / max4.w, max4.y / max4.w, max4.z / max4.w);
-        glm::vec3 min = glm::vec3(min4.x / min4.w, min4.y / min4.w, min4.z / min4.w);
+        // test bounds for each pane
+        glm::vec3 max;
+        glm::vec3 min;
+        mat4xVec3(max, cubeModel, facesMinMax[i]);
+        mat4xVec3(min, cubeModel, facesMinMax[i + 1]);
         std::cout << std::endl;
         printVec3(min);
         //printVec3(intersectPoint);
@@ -366,8 +376,10 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
     //GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
     //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cubeModel));
 
-    glm::vec4 cam4 = glm::inverse(cubeModel) * glm::vec4(0.0f, 0.0f, 2.99f, 1.0f);
-    glm::vec3 cam = glm::vec3(cam4.x / cam4.w, cam4.y / cam4.w, cam4.z / cam4.w);
+    glm::vec3 cam;
+    glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 2.99f);
+    glm::mat4 cubeModelInv = glm::inverse(cubeModel);
+    mat4xVec3(cam, cubeModelInv, camPos);
 
     for (unsigned int i=0; i<mouseClicks.size(); i++){
         GLfloat lineVertices[12] = {
