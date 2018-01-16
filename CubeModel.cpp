@@ -88,7 +88,7 @@ const std::vector<glm::vec3> CubeModel::getFaceNormals(){
     glm::vec3 v2 = glm::vec3(max.x, -1.0f * max.y, max.z);
     glm::vec3 v3 = glm::vec3(max.x, max.y, -1.0f * max.z);
     glm::vec3 normal1 = CubeModel::getNormal(max, v1, v2);
-    glm::vec3 normal2 = CubeModel::getNormal(max, v1, v3);
+    glm::vec3 normal2 = -1.0f * CubeModel::getNormal(max, v1, v3);
     glm::vec3 normal3 = CubeModel::getNormal(max, v2, v3);
     glm::vec3 normal4 = glm::normalize(glm::vec3(-1.0f * normal1.x, -1.0f * normal1.y, -1.0f * normal1.z));
     glm::vec3 normal5 = glm::normalize(glm::vec3(-1.0f * normal2.x, -1.0f * normal2.y, -1.0f * normal2.z));

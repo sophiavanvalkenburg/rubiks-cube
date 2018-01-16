@@ -296,6 +296,24 @@ bool gte(float a, float b){
 bool lte(float a, float b){
     return eq(a, b) || a - b < MIN_EPSILON;
 }
+
+void getMinMax(glm::vec3 &min, glm::vec3 &max){
+    if (max.x < min.x){
+        float x = max.x;
+        max.x = min.x;
+        min.x = x;
+    }
+    if (max.y < min.y){
+        float y = max.y;
+        max.y = min.y;
+        min.y = y;
+    }
+    if (max.z < min.z){
+        float z = max.z;
+        max.z = min.z;
+        min.z = z;
+    }
+}
 /*
 bool pointIsInCube(glm::vec3 point){
     std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
@@ -323,14 +341,19 @@ bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
     const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
-    for (unsigned int i=0; i<1; i++){
-        if (!intersectPlane(intersectPoint, origin, intersectRay, normals[i], -0.15f)) continue;
+    for (unsigned int i=0; i<normals.size(); i++){
+        //std::cout << i << std::endl;
+        glm::vec3 normal = normals[i];
+        //printVec3(normal);
+        if (!intersectPlane(intersectPoint, origin, intersectRay, normal, -0.15f)) continue;
         // test bounds for each pane
-        glm::vec3 max = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[i]);
-        glm::vec3 min = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[i + 1]);
-        std::cout << std::endl;
+        glm::vec3 max = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i]);
+        glm::vec3 min = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i + 1]);
+        getMinMax(min, max);        
+        std::cout << "min ";
         printVec3(min);
         //printVec3(intersectPoint);
+        std::cout << "max ";
         printVec3(max);
         if (lte(intersectPoint.x, max.x) && lte(intersectPoint.y, max.y) && lte(intersectPoint.z, max.z) &&
           gte(intersectPoint.x, min.x) && gte(intersectPoint.y, min.y) && gte(intersectPoint.z, min.z)) 
@@ -410,8 +433,6 @@ void drawCubes(Shader &shader, RubiksCube &cube, glm::mat4 view, glm::mat4 proje
 
     // model matrix
 
-    //glm::vec4 right = glm::inverse(cubeModel) * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    //glm::vec4 up = glm::inverse(cubeModel) * glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
     glm::mat4 cubeModelInv = glm::inverse(cubeModel);
     glm::vec3 right = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(1.0f, 0.0f, 0.0f));
     glm::vec3 up = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(0.0f, 1.0f, 0.0f));
