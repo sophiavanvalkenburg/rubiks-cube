@@ -302,7 +302,6 @@ bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<normals.size(); i++){
         glm::vec3 normal = normals[i];
-        printVec3(normal);
         if (!intersectPlane(intersectPoint, origin, intersectRay, normal, -0.15f)) continue;
         // test bounds for each pane
         glm::vec3 max = facesMinMax[2 * i];
