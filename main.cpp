@@ -57,7 +57,7 @@ void processInput(GLFWwindow* window)
     setRotationAxis(window);
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
         State::mouseBtnIsDown = true;
@@ -107,7 +107,7 @@ glm::vec3 createWorldRay(double xpos, double ypos, glm::mat4 projection, glm::ma
     return worldCoords;
 }
 
-void mouse_callback(GLFWwindow* window, double xpos, double ypos){
+void mouseCallback(GLFWwindow* window, double xpos, double ypos){
 
     State::mouseX = xpos;
     State::mouseY = ypos;
@@ -367,8 +367,8 @@ int main()
     GLuint VAO;
     glGenVertexArrays(1, &VAO);
 
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
         // the "game loop"
     while(!glfwWindowShouldClose(window)){
