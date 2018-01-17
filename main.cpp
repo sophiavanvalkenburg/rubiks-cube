@@ -13,6 +13,9 @@
 #include "shader.h"
 #include "RubiksCube.h"
 #include "CubeModel.h"
+#include "util.h"
+
+float MIN_EPSILON = 1e-6;
 
 std::vector<glm::vec3> mouseClicks;
 std::vector<glm::vec3> hits;
@@ -24,7 +27,6 @@ bool faceRotationBtnIsDown = false;
 
 double mouseX;
 double mouseY;
-float MIN_EPSILON = 1e-6;
 glm::vec3 mouseWorldPos;
 
 /*** cube movement ***/
@@ -46,24 +48,6 @@ bool faceFirstMouse = true;
 
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
-
-void copyVec3(glm::vec3 &out, glm::vec3 &v){
-    out.x = v.x;
-    out.y = v.y;
-    out.z = v.z;
-}
-
-void printVec3(glm::vec3 &v){
-    std::cout << v.x << " " << v.y << " " << v.z << std::endl;
-}
-
-glm::vec3 mat4xVec3(glm::vec3 out, const glm::mat4 m, const glm::vec3 v)
-{
-    glm::vec4 tmp = m * glm::vec4(v.x, v.y, v.z, 1.0f);
-    glm::vec3 v1 = glm::vec3(tmp.x / tmp.w, tmp.y / tmp.w, tmp.z / tmp.w);
-    copyVec3(out, v1);
-    return out;
-}
 
 void bindVertices(GLuint &VAO, GLuint &VBO, const GLfloat *vertices, size_t vertices_sz) 
 {
@@ -265,7 +249,6 @@ float getNearestValidAngle(float angle){
     return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
 }
 
-
 bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance)
 {
     // origin: camera position
@@ -283,17 +266,6 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     return true;
 }
 
-bool eq(float a, float b){
-    return a - b < MIN_EPSILON && b - a < MIN_EPSILON;
-}
-
-bool gte(float a, float b){
-    return eq(a, b) || a - b > MIN_EPSILON;
-}
-
-bool lte(float a, float b){
-    return eq(a, b) || a - b < MIN_EPSILON;
-}
 
 bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
 {
