@@ -16,9 +16,8 @@
 #include "util.h"
 #include "RenderEngine.h"
 #include "State.h"
+#include "Window.h"
 
-float screenWidth = 800.0f;
-float screenHeight = 600.0f;
 
 void setRotationAxis(GLFWwindow* window){
 
@@ -94,8 +93,8 @@ float normalizedDeviceCoord(float coord, float maxCoord, float dir){
 
 glm::vec3 createWorldRay(double xpos, double ypos, glm::mat4 projection, glm::mat4 view){
     // convert mouse to clip coords
-    float ndcX = normalizedDeviceCoord(xpos, screenWidth, 1.0f);
-    float ndcY = normalizedDeviceCoord(ypos, screenHeight, -1.0f);
+    float ndcX = normalizedDeviceCoord(xpos, State::screenWidth, 1.0f);
+    float ndcY = normalizedDeviceCoord(ypos, State::screenHeight, -1.0f);
     glm::vec4 clipCoords = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
     // convert clip to camera coords
     glm::vec4 camCoords = glm::inverse(projection) * clipCoords;
@@ -138,38 +137,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
        State::faceLastY = ypos;
        State::faceRotationAngle += glm::radians(yoffset);
     }
-}
-
-GLFWwindow* initWindow()
-{
-    // initialize GLFW and add window hints which will configure the window
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    // can use 3.3 with OSX 10.9+
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    // required for mac
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    // creating the window
-    // nullptr is c++11 -- for earlier versions use NULL
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Rubik's Cube", nullptr, nullptr);
-    if (window == nullptr)
-    {
-        glfwTerminate();
-        return nullptr;
-    }
-    glfwMakeContextCurrent(window);
-
-    return window;
-}
-
-void setWindowParams(GLFWwindow* window)
-{
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
 }
 
 float getNearestValidAngle(float angle){
@@ -376,7 +343,7 @@ int main()
         // view matrix
         glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         // projection matrix
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), screenWidth/screenHeight, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), State::screenWidth/State::screenHeight, 0.1f, 100.0f);
 
         shader.Use();
 

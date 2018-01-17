@@ -4,6 +4,9 @@
 std::vector<glm::vec3> State::mouseClicks;
 std::vector<glm::vec3> State::hits;
 
+float State::screenWidth = 800.0f;
+float State::screenHeight = 600.0f;
+
 float State::deltaTime = 0.0f;
 float State::lastFrame = 0.0f;
 

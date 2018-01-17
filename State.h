@@ -11,6 +11,8 @@ public:
     static std::vector<glm::vec3> mouseClicks;
     static std::vector<glm::vec3> hits;
 
+    static float screenWidth;
+    static float screenHeight;
     static float deltaTime;
     static float lastFrame;
     static bool mouseBtnIsDown;
