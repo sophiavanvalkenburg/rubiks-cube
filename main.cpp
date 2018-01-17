@@ -214,19 +214,18 @@ int main()
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
+    shader.Use();
+
+    GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(State::view));
+
+    GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(State::projection));
+
     // the "game loop"
     while(!glfwWindowShouldClose(window)){
         beginLoop(window);
-        shader.Use();
-
-        GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(State::view));
-
-        GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(State::projection));
-
         State::mouseWorldPos = screenSpaceToWorldSpace(State::mouseX, State::mouseY);
-
         drawCubes(shader, cube, VAO, VBO);
         endLoop(window);
     }
