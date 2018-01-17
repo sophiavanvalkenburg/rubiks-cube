@@ -15,8 +15,6 @@
 #include "CubeModel.h"
 #include "util.h"
 
-float MIN_EPSILON = 1e-6;
-
 std::vector<glm::vec3> mouseClicks;
 std::vector<glm::vec3> hits;
 

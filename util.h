@@ -4,6 +4,8 @@
 #include <iostream>
 #include <glm/glm.hpp>
 
+float MIN_EPSILON = 1e-6;
+
 void copyVec3(glm::vec3 &out, glm::vec3 &v){
     out.x = v.x;
     out.y = v.y;
