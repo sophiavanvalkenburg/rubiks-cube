@@ -14,7 +14,6 @@
 #include "RubiksCube.h"
 #include "CubeModel.h"
 
-
 std::vector<glm::vec3> mouseClicks;
 std::vector<glm::vec3> hits;
 
@@ -275,12 +274,24 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     // intersectRay: direction of ray from origin
     // planeNormal: direction of plane (collision direction)
     // planeDistance: distance from plane to origin (will be negative since planeNormal is pointing away from plane)
+    planeNormal = mat4xVec3(glm::vec3(), cubeModel, planeNormal);
+    std::cout << "origin ";
+    printVec3(origin);
+    std::cout << "intersectRay ";
+    printVec3(intersectRay);
+    std::cout << "planeNormal ";
+    printVec3(planeNormal);
     float rayAndNormalDotProduct = glm::dot(intersectRay, planeNormal);
+    std::cout << "rayAndNormalDotProduct " << rayAndNormalDotProduct << std::endl;
     if (std::abs(rayAndNormalDotProduct) <= MIN_EPSILON) return false;
     float originAndNormalDotProduct = glm::dot(origin, planeNormal);
+    std::cout << "originAndNormalDotProduct " << originAndNormalDotProduct << std::endl;
     float intersectDistance = -1 * (originAndNormalDotProduct + planeDistance) / rayAndNormalDotProduct;
+    std::cout << "intersectDistance " << intersectDistance << std::endl;
     if (intersectDistance < 0) return false;
     glm::vec3 intersectPoint = origin + glm::vec3(intersectRay.x * intersectDistance, intersectRay.y * intersectDistance, intersectRay.z * intersectDistance);
+    std::cout << "intersectPoint ";
+    printVec3(intersectPoint);
     copyVec3(out, intersectPoint);
     return true;
 }
@@ -344,19 +355,23 @@ bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
     for (unsigned int i=0; i<normals.size(); i++){
         //std::cout << i << std::endl;
         glm::vec3 normal = normals[i];
-        //printVec3(normal);
+        printVec3(normal);
         if (!intersectPlane(intersectPoint, origin, intersectRay, normal, -0.15f)) continue;
         // test bounds for each pane
-        glm::vec3 max = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i]);
-        glm::vec3 min = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i + 1]);
-        getMinMax(min, max);        
+        //glm::vec3 max = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i]);
+        //glm::vec3 min = mat4xVec3(glm::vec3(), cubeModel, facesMinMax[2 * i + 1]);
+        //getMinMax(min, max);        
+        glm::vec3 max = facesMinMax[2 * i];
+        glm::vec3 min = facesMinMax[2 * i + 1];
+        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(cubeModel), intersectPoint);
         std::cout << "min ";
         printVec3(min);
-        //printVec3(intersectPoint);
+        //printVec3(intersectPointInv);
         std::cout << "max ";
         printVec3(max);
-        if (lte(intersectPoint.x, max.x) && lte(intersectPoint.y, max.y) && lte(intersectPoint.z, max.z) &&
-          gte(intersectPoint.x, min.x) && gte(intersectPoint.y, min.y) && gte(intersectPoint.z, min.z)) 
+        std::cout << "hit " << i << std::endl;
+        if (lte(intersectPointInv.x, max.x) && lte(intersectPointInv.y, max.y) && lte(intersectPointInv.z, max.z) &&
+          gte(intersectPointInv.x, min.x) && gte(intersectPointInv.y, min.y) && gte(intersectPointInv.z, min.z)) 
         {
             copyVec3(out, intersectPoint);
             return true;
