@@ -14,6 +14,7 @@
 #include "RubiksCube.h"
 #include "CubeModel.h"
 #include "util.h"
+#include "RenderEngine.h"
 
 std::vector<glm::vec3> mouseClicks;
 std::vector<glm::vec3> hits;
@@ -46,50 +47,6 @@ bool faceFirstMouse = true;
 
 float screenWidth = 800.0f;
 float screenHeight = 600.0f;
-
-void bindVertices(GLuint &VAO, GLuint &VBO, const GLfloat *vertices, size_t vertices_sz) 
-{
-    // bind the VAO
-    glBindVertexArray(VAO);
-    // send vertex data to vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices_sz, vertices, GL_STATIC_DRAW);
-    // tell OpenGL how to interpret the vertex data
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)0);
-    glEnableVertexAttribArray(0);
-    // Texture attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid *)(3*sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    // unbind the VBO - we can do this because it was registered as VBO
-    // when we called glVertexAttribPointer
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // unbind the VAO
-    glBindVertexArray(0);
-
-}
-
-void drawCubeVertices(GLuint &VAO)
-{
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-}
-
-void drawLineVertixes(GLuint &VAO)
-{
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_LINE_STRIP, 0, 2);
-    glBindVertexArray(0);
-}
-
-void drawPointVertices(GLuint &VAO, GLuint nVertices)
-{
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_POINTS, 0, nVertices);
-    glBindVertexArray(0);
-}
 
 void setRotationAxis(GLFWwindow* window){
 
@@ -322,7 +279,7 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
             mouseClicks[i].x, mouseClicks[i].y, mouseClicks[i].z,  1.0f, 1.0f, 1.0f
         };
         bindVertices(VAO, VBO, lineVertices, sizeof(lineVertices));
-        drawLineVertixes(VAO);
+        drawLineVertixes(VAO, 2);
     }
 }
 
@@ -381,7 +338,7 @@ void drawCubes(Shader &shader, RubiksCube &cube, glm::mat4 view, glm::mat4 proje
         GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
         // draw the mini cube
-        drawCubeVertices(VAO);
+        drawCubeVertices(VAO, 36);
     }
     
 }
