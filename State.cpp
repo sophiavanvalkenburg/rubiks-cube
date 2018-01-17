@@ -1,11 +1,18 @@
 #include "State.h"
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 std::vector<glm::vec3> State::mouseClicks;
 std::vector<glm::vec3> State::hits;
 
 float State::screenWidth = 800.0f;
 float State::screenHeight = 600.0f;
+
+glm::vec3 State::cameraPosition = glm::vec3(0.0f, 0.0f, 3.0f);
+// view matrix
+glm::mat4 State::view = glm::lookAt(State::cameraPosition, glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+// projection matrix
+glm::mat4 State::projection = glm::perspective(glm::radians(45.0f), State::screenWidth/State::screenHeight, 0.1f, 100.0f);
 
 float State::deltaTime = 0.0f;
 float State::lastFrame = 0.0f;

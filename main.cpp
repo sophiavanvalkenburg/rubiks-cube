@@ -28,52 +28,19 @@ float normalizedDeviceCoord(float coord, float maxCoord, float dir){
     return dir * ( 2 * coord / maxCoord - 1.0f );
 }
 
-glm::vec3 createWorldRay(double xpos, double ypos, glm::mat4 projection, glm::mat4 view){
+glm::vec3 screenSpaceToWorldSpace(double xpos, double ypos){
     // convert mouse to clip coords
     float ndcX = normalizedDeviceCoord(xpos, State::screenWidth, 1.0f);
     float ndcY = normalizedDeviceCoord(ypos, State::screenHeight, -1.0f);
     glm::vec4 clipCoords = glm::vec4(ndcX, ndcY, -1.0f, 1.0f);
     // convert clip to camera coords
-    glm::vec4 camCoords = glm::inverse(projection) * clipCoords;
+    glm::vec4 camCoords = glm::inverse(State::projection) * clipCoords;
     camCoords = glm::vec4(camCoords.x, camCoords.y, -1.0f, 0.0f);
     // convert camera to world coords
-    glm::vec4 worldCoordsTmp = glm::inverse(view) * camCoords;
+    glm::vec4 worldCoordsTmp = glm::inverse(State::view) * camCoords;
     //glm::vec3 worldCoords = glm::normalize(glm::vec3(worldCoordsTmp.x / worldCoordsTmp.w, worldCoordsTmp.y / worldCoordsTmp.w, worldCoordsTmp.z / worldCoordsTmp.w));
     glm::vec3 worldCoords = glm::normalize(glm::vec3(worldCoordsTmp.x, worldCoordsTmp.y, worldCoordsTmp.z));
     return worldCoords;
-}
-
-void mouseCallback(GLFWwindow* window, double xpos, double ypos){
-
-    State::mouseX = xpos;
-    State::mouseY = ypos;
-
-    if (State::mouseBtnIsDown){
-        if (State::cubeFirstMouse)
-        {
-            State::cubeLastX = xpos;
-            State::cubeLastY = ypos;
-            State::cubeFirstMouse = false;
-        }
-
-        float xoffset = calculatePositionOffset(xpos, State::cubeLastX);
-        float yoffset = calculatePositionOffset(ypos, State::cubeLastY);
-
-        State::cubeLastX = xpos;
-        State::cubeLastY = ypos;
-
-        State::cubeYaw = glm::radians(xoffset); 
-        State::cubePitch = glm::radians(yoffset);
-
-    } else if (State::faceRotationBtnIsDown){
-       if (State::faceFirstMouse){
-           State::faceLastY = ypos;
-           State::faceFirstMouse = false;
-       }
-       float yoffset = calculatePositionOffset(ypos, State::faceLastY);
-       State::faceLastY = ypos;
-       State::faceRotationAngle += glm::radians(yoffset);
-    }
 }
 
 float getNearestValidAngle(float angle){
@@ -130,12 +97,10 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 
 void testIntersectPlane()
 {
-    glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    
     glm::vec3 intersectRay;
     copyVec3(intersectRay, State::mouseWorldPos);
     glm::vec3 testPoint;
-    bool hit = intersectSubCube(testPoint, camPos, intersectRay);
+    bool hit = intersectSubCube(testPoint, State::cameraPosition, intersectRay);
     if (hit){
         std::cout << "HIT" << std::endl;
         State::hits.push_back(testPoint);
@@ -144,44 +109,50 @@ void testIntersectPlane()
     }
 }
 
-void drawCubes(Shader &shader, RubiksCube &cube, glm::mat4 view, glm::mat4 projection, GLuint &VAO, GLuint &VBO)
+void updateCubeModel()
+{
+    glm::mat4 cubeModelInv = glm::inverse(State::cubeModel);
+    glm::vec3 right = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::vec3 up = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(0.0f, 1.0f, 0.0f));
+    State::cubeModel = glm::rotate(State::cubeModel, State::cubePitch, right);
+    State::cubeModel = glm::rotate(State::cubeModel, State::cubeYaw, up);
+}
+
+void drawSubCube(Shader &shader, RubiksCube &cube, SubCube &subcube, unsigned int subcubeId, glm::mat4 subcubeModel, GLuint &VAO)
+{
+    glm::mat4 transformSubCubeModel;
+    glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
+    if (cube.faceContainsSubCube(0, subcubeId)){
+        glm::vec3 faceCenter = cube.getFaceCenter(0);
+        glm::mat4 translateSubCubeModel;
+        glm::mat4 inverseTranslateSubCubeModel;
+        translateSubCubeModel = glm::translate(translateSubCubeModel, faceCenter);
+        inverseTranslateSubCubeModel = glm::inverse(translateSubCubeModel);
+        transformSubCubeModel = State::cubeModel * inverseTranslateSubCubeModel * subcubeModel * translateSubCubeModel * subcubePositionModel;
+    } else {
+        transformSubCubeModel = State::cubeModel * subcubePositionModel;
+    }
+    testIntersectPlane();
+    GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
+    // draw the mini cube
+    drawCubeVertices(VAO, 36);
+}
+
+void drawCubes(Shader &shader, RubiksCube &cube, GLuint &VAO, GLuint &VBO)
 {
     size_t cubeVerticesSize = CubeModel::getSizeOfVertices();
     const GLfloat *cubeVertices = CubeModel::getVertices();
     bindVertices(VAO, VBO, cubeVertices, cubeVerticesSize);
 
-    // model matrix
-
-    glm::mat4 cubeModelInv = glm::inverse(State::cubeModel);
-    glm::vec3 right = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::vec3 up = mat4xVec3(glm::vec3(), cubeModelInv, glm::vec3(0.0f, 1.0f, 0.0f));
-    State::cubeModel = glm::rotate(State::cubeModel, State::cubePitch, right);
-    State::cubeModel = glm::rotate(State::cubeModel, State::cubeYaw, up); 
-
-    std::vector<SubCube> subcubes = cube.getSubCubes();
+    updateCubeModel();
 
     glm::mat4 subcubeModel;
     subcubeModel = glm::rotate(subcubeModel, getNearestValidAngle(State::faceRotationAngle), State::faceRotationAxis);
-
+    std::vector<SubCube> subcubes = cube.getSubCubes();
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];
-        glm::mat4 transformSubCubeModel;
-        glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
-        if (cube.faceContainsSubCube(0, i)){
-            glm::vec3 faceCenter = cube.getFaceCenter(0);
-            glm::mat4 translateSubCubeModel;
-            glm::mat4 inverseTranslateSubCubeModel;
-            translateSubCubeModel = glm::translate(translateSubCubeModel, faceCenter);
-            inverseTranslateSubCubeModel = glm::inverse(translateSubCubeModel);
-            transformSubCubeModel = State::cubeModel * inverseTranslateSubCubeModel * subcubeModel * translateSubCubeModel * subcubePositionModel;
-        } else {
-            transformSubCubeModel = State::cubeModel * subcubePositionModel;
-        }
-        testIntersectPlane();
-        GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
-        // draw the mini cube
-        drawCubeVertices(VAO, 36);
+        drawSubCube(shader, cube, subcube, i, subcubeModel, VAO);
     }
     
 }
@@ -243,25 +214,20 @@ int main()
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
-        // the "game loop"
+    // the "game loop"
     while(!glfwWindowShouldClose(window)){
         beginLoop(window);
-        // view matrix
-        glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        // projection matrix
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), State::screenWidth/State::screenHeight, 0.1f, 100.0f);
-
         shader.Use();
 
         GLuint viewLoc = glGetUniformLocation(shader.Program, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(State::view));
 
         GLuint projectionLoc = glGetUniformLocation(shader.Program, "projection");
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(State::projection));
 
-        State::mouseWorldPos = createWorldRay(State::mouseX, State::mouseY, projection, view);
+        State::mouseWorldPos = screenSpaceToWorldSpace(State::mouseX, State::mouseY);
 
-        drawCubes(shader, cube, view, projection, VAO, VBO);
+        drawCubes(shader, cube, VAO, VBO);
         endLoop(window);
     }
 

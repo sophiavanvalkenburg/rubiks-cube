@@ -11,6 +11,9 @@ public:
     static std::vector<glm::vec3> mouseClicks;
     static std::vector<glm::vec3> hits;
 
+    static glm::vec3 cameraPosition;
+    static glm::mat4 view;
+    static glm::mat4 projection;
     static float screenWidth;
     static float screenHeight;
     static float deltaTime;

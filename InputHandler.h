@@ -70,4 +70,37 @@ float calculatePositionOffset(float newPos, float oldPos){
     return offset;
 }
 
+void mouseCallback(GLFWwindow* window, double xpos, double ypos){
+
+    State::mouseX = xpos;
+    State::mouseY = ypos;
+
+    if (State::mouseBtnIsDown){
+        if (State::cubeFirstMouse)
+        {
+            State::cubeLastX = xpos;
+            State::cubeLastY = ypos;
+            State::cubeFirstMouse = false;
+        }
+
+        float xoffset = calculatePositionOffset(xpos, State::cubeLastX);
+        float yoffset = calculatePositionOffset(ypos, State::cubeLastY);
+
+        State::cubeLastX = xpos;
+        State::cubeLastY = ypos;
+
+        State::cubeYaw = glm::radians(xoffset); 
+        State::cubePitch = glm::radians(yoffset);
+
+    } else if (State::faceRotationBtnIsDown){
+       if (State::faceFirstMouse){
+           State::faceLastY = ypos;
+           State::faceFirstMouse = false;
+       }
+       float yoffset = calculatePositionOffset(ypos, State::faceLastY);
+       State::faceLastY = ypos;
+       State::faceRotationAngle += glm::radians(yoffset);
+    }
+}
+
 #endif

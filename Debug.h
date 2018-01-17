@@ -25,7 +25,10 @@ void drawHits(Shader &shader, GLuint &VAO, GLuint &VBO)
 
 void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
 {
-    glm::vec3 cam = mat4xVec3(glm::vec3(), glm::inverse(State::cubeModel), glm::vec3(0.0f, 0.0f, 2.99f));
+    glm::vec3 origin;
+    copyVec3(origin, State::cameraPosition);
+    origin.z -= 0.01; // slightly in front of camera so we can see it
+    glm::vec3 cam = mat4xVec3(glm::vec3(), glm::inverse(State::cubeModel), origin);
 
     for (unsigned int i=0; i<State::mouseClicks.size(); i++){
         GLfloat lineVertices[12] = {
