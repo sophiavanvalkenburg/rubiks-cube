@@ -1,9 +1,9 @@
 #include "State.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "RubiksCube.h"
 
-std::vector<glm::vec3> State::mouseClicks;
-std::vector<glm::vec3> State::hits;
+RubiksCube State::rubiksCube = RubiksCube();
 
 float State::screenWidth = 800.0f;
 float State::screenHeight = 600.0f;
@@ -25,12 +25,9 @@ bool State::mouseBtnIsDown = false;
 bool State::faceRotationBtnIsDown = false;
 
 /*** cube movement ***/
-glm::mat4 State::cubeModel;
 float State::cubeLastX = 400;
 float State::cubeLastY = 300;
 bool State::cubeFirstMouse = true;
-float State::cubeYaw = 0.0f;
-float State::cubePitch = 0.0f;
 
 /*** face movement ***/
 glm::vec3 State::X_AXIS = glm::vec3(1.0f, 0.0f, 0.0f);

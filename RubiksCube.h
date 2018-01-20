@@ -84,6 +84,11 @@ class RubiksCube
             this->initFaces();  
         }
 
+        glm::mat4 modelMatrix;
+        glm::mat4 viewMatrix;
+        float pitchAngle = 0.0f;
+        float yawAngle = 0.0f;
+
         const float getSubCubeMargin(){
             return 0.025f;
         }

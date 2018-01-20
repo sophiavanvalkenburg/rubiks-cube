@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "State.h"
 #include "util.h"
+#include "Debug.h"
 
 void setRotationAxis(GLFWwindow* window){
 
@@ -24,9 +25,9 @@ void setRotationAxis(GLFWwindow* window){
 
 void resetAll()
 {
-    State::cubeModel = glm::mat4();
-    State::mouseClicks = std::vector<glm::vec3>();
-    State::hits = std::vector<glm::vec3>();
+    State::rubiksCube.modelMatrix = glm::mat4();
+    mouseClicks = std::vector<glm::vec3>();
+    hits = std::vector<glm::vec3>();
 }
 
 void processInput(GLFWwindow* window)
@@ -50,10 +51,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
         State::mouseBtnIsDown = false;
         State::cubeFirstMouse = true;
-        State::cubePitch = 0.0f;
-        State::cubeYaw = 0.0f;
+        State::rubiksCube.pitchAngle = 0.0f;
+        State::rubiksCube.yawAngle = 0.0f;
 
-        State::mouseClicks.push_back(mat4xVec3(glm::vec3(), glm::inverse(State::cubeModel), State::mouseWorldPos));
+        mouseClicks.push_back(mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
     }
 
 }
@@ -89,8 +90,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
         State::cubeLastX = xpos;
         State::cubeLastY = ypos;
 
-        State::cubeYaw = glm::radians(xoffset); 
-        State::cubePitch = glm::radians(yoffset);
+        State::rubiksCube.yawAngle = glm::radians(xoffset); 
+        State::rubiksCube.pitchAngle = glm::radians(yoffset);
 
     } else if (State::faceRotationBtnIsDown){
        if (State::faceFirstMouse){

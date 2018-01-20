@@ -3,13 +3,13 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include "RubiksCube.h"
 
 class State {
 
 public:
 
-    static std::vector<glm::vec3> mouseClicks;
-    static std::vector<glm::vec3> hits;
+    static RubiksCube rubiksCube;
 
     static glm::vec3 cameraPosition;
     static glm::mat4 view;
@@ -26,12 +26,9 @@ public:
     static glm::vec3 mouseWorldPos;
 
     /*** cube movement ***/
-    static glm::mat4 cubeModel;
     static float cubeLastX;
     static float cubeLastY;
     static bool cubeFirstMouse;
-    static float cubeYaw;
-    static float cubePitch;
 
     /*** face movement ***/
     static glm::vec3 X_AXIS;
