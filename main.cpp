@@ -53,7 +53,6 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     // intersectRay: direction of ray from origin
     // planeNormal: direction of plane (collision direction)
     // planeDistance: distance from plane to origin (will be negative since planeNormal is pointing away from plane)
-    planeNormal = mat4xVec3(glm::vec3(), State::cubeModel, planeNormal);
     float rayAndNormalDotProduct = glm::dot(intersectRay, planeNormal);
     if (std::abs(rayAndNormalDotProduct) <= MIN_EPSILON) return false;
     float originAndNormalDotProduct = glm::dot(origin, planeNormal);
@@ -65,22 +64,27 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
 }
 
 
-bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay)
+bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::mat4 transformModel, glm::mat4 rotationMatrix, float planeDistance)
 {
     const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<normals.size(); i++){
-        glm::vec3 normal = normals[i];
-        if (!intersectPlane(intersectPoint, origin, intersectRay, normal, CubeModel::boundingMin.z)) continue;
+        glm::vec3 normal = mat4xVec3(glm::vec3(), rotationMatrix, normals[i]);
+        if (!intersectPlane(intersectPoint, origin, intersectRay, normal, planeDistance)) continue;
+        copyVec3(out, intersectPoint);
         // test bounds for each pane
         glm::vec3 max = facesMinMax[2 * i];
         glm::vec3 min = facesMinMax[2 * i + 1];
-        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(State::cubeModel), intersectPoint);
+        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(transformModel), intersectPoint);
+        //std::cout << glm::to_string(transformModel) << std::endl;
+        //printVec3(max);
+        ///printVec3(intersectPoint);
+        //printVec3(intersectPointInv);
+        //printVec3(min);
         if (lte(intersectPointInv.x, max.x) && lte(intersectPointInv.y, max.y) && lte(intersectPointInv.z, max.z) &&
           gte(intersectPointInv.x, min.x) && gte(intersectPointInv.y, min.y) && gte(intersectPointInv.z, min.z)) 
         {
-            copyVec3(out, intersectPoint);
             return true;
         }
     }
@@ -95,17 +99,16 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 }
 */
 
-void testIntersectPlane()
+void testIntersectPlane(glm::vec3 intersectRay, glm::mat4 transformModel, glm::mat4 rotationMatrix, float planeDistance)
 {
-    glm::vec3 intersectRay;
-    copyVec3(intersectRay, State::mouseWorldPos);
     glm::vec3 testPoint;
-    bool hit = intersectSubCube(testPoint, State::cameraPosition, intersectRay);
+    bool hit = intersectSubCube(testPoint, State::cameraPosition, intersectRay, transformModel, rotationMatrix, planeDistance);
+    State::hits.push_back(testPoint);
     if (hit){
+        printVec3(testPoint);
         std::cout << "HIT" << std::endl;
-        State::hits.push_back(testPoint);
     } else {
-        std::cout << "NO HIT" << std::endl;
+        //std::cout << "NO HIT" << std::endl;
     }
 }
 
@@ -120,7 +123,10 @@ void updateCubeModel()
 
 void drawSubCube(Shader &shader, RubiksCube &cube, SubCube &subcube, unsigned int subcubeId, glm::mat4 subcubeModel, GLuint &VAO)
 {
+    glm::vec3 intersectRay;
+    copyVec3(intersectRay, State::mouseWorldPos);
     glm::mat4 transformSubCubeModel;
+    glm::mat4 rotationMatrix;
     glm::mat4 subcubePositionModel = glm::translate(transformSubCubeModel, subcube.getPosition());
     if (cube.faceContainsSubCube(0, subcubeId)){
         glm::vec3 faceCenter = cube.getFaceCenter(0);
@@ -128,11 +134,15 @@ void drawSubCube(Shader &shader, RubiksCube &cube, SubCube &subcube, unsigned in
         glm::mat4 inverseTranslateSubCubeModel;
         translateSubCubeModel = glm::translate(translateSubCubeModel, faceCenter);
         inverseTranslateSubCubeModel = glm::inverse(translateSubCubeModel);
-        transformSubCubeModel = State::cubeModel * inverseTranslateSubCubeModel * subcubeModel * translateSubCubeModel * subcubePositionModel;
+        rotationMatrix = State::cubeModel * inverseTranslateSubCubeModel * subcubeModel * translateSubCubeModel; 
+        transformSubCubeModel = rotationMatrix * subcubePositionModel;
     } else {
+        rotationMatrix = State::cubeModel;
         transformSubCubeModel = State::cubeModel * subcubePositionModel;
     }
-    testIntersectPlane();
+    // plane distance works since we don't need to intersect the inside of the cube
+    float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + cube.getSubCubeMargin());
+    testIntersectPlane(intersectRay, transformSubCubeModel, rotationMatrix, planeDistance);
     GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeModel));
     // draw the mini cube
@@ -227,6 +237,8 @@ int main()
         beginLoop(window);
         State::mouseWorldPos = screenSpaceToWorldSpace(State::mouseX, State::mouseY);
         drawCubes(shader, cube, VAO, VBO);
+        //drawMouseClicks(shader, VAO, VBO);
+        //drawHits(shader, VAO, VBO);
         endLoop(window);
     }
 

@@ -18,5 +18,6 @@ class CubeModel
         const static std::vector<glm::vec3> getFacesMinMax();
         const static std::vector<glm::vec3> getFaceNormals();
         const static size_t getSizeOfVertices();
+        const static glm::vec3 getCubeSideLengths();
 };
 #endif

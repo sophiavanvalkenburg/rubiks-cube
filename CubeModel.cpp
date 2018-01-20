@@ -92,3 +92,7 @@ const std::vector<glm::vec3> CubeModel::getFaceNormals(){
 const size_t CubeModel::getSizeOfVertices(){
     return sizeof(CubeModel::vertices);
 };
+
+const glm::vec3 CubeModel::getCubeSideLengths(){
+    return glm::vec3(2.0f) * CubeModel::boundingMax - CubeModel::boundingMin;
+}
