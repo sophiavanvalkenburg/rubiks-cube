@@ -93,7 +93,7 @@ SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
 }
 */
 
-void testIntersectPlane(glm::vec3 intersectRay, glm::mat4 transformMatrix, glm::mat4 rotationMatrix, float planeDistance)
+bool testIntersectPlane(glm::vec3 intersectRay, glm::mat4 transformMatrix, glm::mat4 rotationMatrix, float planeDistance)
 {
     glm::vec3 testPoint;
     bool hit = intersectSubCube(testPoint, State::cameraPosition, intersectRay, transformMatrix, rotationMatrix, planeDistance);
@@ -104,6 +104,7 @@ void testIntersectPlane(glm::vec3 intersectRay, glm::mat4 transformMatrix, glm::
     } else {
         //std::cout << "NO HIT" << std::endl;
     }
+    return hit;
 }
 
 void updateCubeMatrix()
@@ -136,10 +137,13 @@ void drawSubCube(Shader &shader, SubCube &subcube, unsigned int subcubeId, glm::
     }
     // plane distance works since we don't need to intersect the inside of the cube
     float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
-    testIntersectPlane(intersectRay, transformSubCubeMatrix, rotationMatrix, planeDistance);
+    bool hit = testIntersectPlane(intersectRay, transformSubCubeMatrix, rotationMatrix, planeDistance);
+    GLfloat hitVal = hit ? 1.0f : 0.0f;
+    GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
+    glUniform1f(isSelectedLoc, hitVal);
     GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeMatrix));
-    // draw the mini cube
+    // draw the mini cub
     drawCubeVertices(VAO, 36);
 }
 
