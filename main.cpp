@@ -64,18 +64,18 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
 }
 
 
-bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::mat4 transformMatrix, glm::mat4 rotationMatrix, float planeDistance)
+bool intersectSubCube(glm::vec3 &out, SubCube &subcube, glm::mat4 &modelMatrix, glm::vec3 origin, glm::vec3 intersectRay, float planeDistance)
 {
     const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<normals.size(); i++){
-        glm::vec3 normal = mat4xVec3(glm::vec3(), rotationMatrix, normals[i]);
+        glm::vec3 normal = mat4xVec3(glm::vec3(), subcube.rotationMatrix, normals[i]);
         if (!intersectPlane(intersectPoint, origin, intersectRay, normal, planeDistance)) continue;
         copyVec3(out, intersectPoint);
         glm::vec3 max = facesMinMax[2 * i];
         glm::vec3 min = facesMinMax[2 * i + 1];
-        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(transformMatrix), intersectPoint);
+        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(modelMatrix), intersectPoint);
         if (lte(intersectPointInv.x, max.x) && lte(intersectPointInv.y, max.y) && lte(intersectPointInv.z, max.z) &&
           gte(intersectPointInv.x, min.x) && gte(intersectPointInv.y, min.y) && gte(intersectPointInv.z, min.z)) 
         {
@@ -85,24 +85,17 @@ bool intersectSubCube(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, 
     return false;
 }
 
-/*
-SubCube getIntersectedSubCube(glm::vec3 mouseWorldPos){
-    std::vector<glm::vec3> planes = {
-        glm::vec3()   
-    }    
-}
-*/
 
-bool testIntersectPlane(glm::vec3 intersectRay, glm::mat4 transformMatrix, glm::mat4 rotationMatrix, float planeDistance)
+bool testIntersectSubcube(glm::vec3 &out, SubCube &subcube, glm::mat4 &modelMatrix, glm::vec3 origin, float planeDistance)
 {
-    glm::vec3 testPoint;
-    bool hit = intersectSubCube(testPoint, State::cameraPosition, intersectRay, transformMatrix, rotationMatrix, planeDistance);
-    hits.push_back(testPoint);
+    glm::vec3 intersectRay;
+    copyVec3(intersectRay, State::mouseWorldPos);
+    bool hit = intersectSubCube(out, subcube, modelMatrix, origin, intersectRay, planeDistance);
+
+    hits.push_back(out);
     if (hit){
-        printVec3(testPoint);
+        printVec3(out);
         std::cout << "HIT" << std::endl;
-    } else {
-        //std::cout << "NO HIT" << std::endl;
     }
     return hit;
 }
@@ -116,10 +109,17 @@ void updateCubeMatrix()
     State::rubiksCube.viewMatrix = glm::inverse(State::rubiksCube.modelMatrix);
 }
 
-void drawSubCube(Shader &shader, SubCube &subcube, unsigned int subcubeId, glm::mat4 subcubeModelMatrix, GLuint &VAO)
+void drawSubCube(Shader &shader, SubCube &subcube, unsigned int subcubeId, glm::mat4 modelMatrix, GLuint &VAO)
 {
-    glm::vec3 intersectRay;
-    copyVec3(intersectRay, State::mouseWorldPos);
+    GLfloat isSelectedVal = subcube.isSelected ? 1.0f : 0.0f;
+    GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
+    glUniform1f(isSelectedLoc, isSelectedVal);
+    GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+    drawCubeVertices(VAO, 36);
+}
+
+void setSubCubeTransformationMatrix(glm::mat4 &modelMatrix, SubCube &subcube, unsigned int subcubeId, glm::mat4 subcubeModelMatrix){
     glm::mat4 transformSubCubeMatrix;
     glm::mat4 rotationMatrix;
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformSubCubeMatrix, subcube.getPosition());
@@ -135,29 +135,43 @@ void drawSubCube(Shader &shader, SubCube &subcube, unsigned int subcubeId, glm::
         rotationMatrix = State::rubiksCube.modelMatrix;
         transformSubCubeMatrix = State::rubiksCube.modelMatrix * subcubeTranslateMatrix;
     }
-    // plane distance works since we don't need to intersect the inside of the cube
-    float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
-    bool hit = testIntersectPlane(intersectRay, transformSubCubeMatrix, rotationMatrix, planeDistance);
-    GLfloat hitVal = hit ? 1.0f : 0.0f;
-    GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
-    glUniform1f(isSelectedLoc, hitVal);
-    GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformSubCubeMatrix));
-    // draw the mini cub
-    drawCubeVertices(VAO, 36);
+    subcube.rotationMatrix = rotationMatrix;
+    modelMatrix = transformSubCubeMatrix;
 }
 
 void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVerticesSize, const GLfloat *cubeVertices)
 {
     bindVertices(VAO, VBO, cubeVertices, cubeVerticesSize);
     updateCubeMatrix();
+
+    // plane distance works since we don't need to intersect the inside of the cube
+    float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
+    glm::vec3 origin = State::cameraPosition;
     glm::mat4 subcubeModelMatrix;
     subcubeModelMatrix = glm::rotate(subcubeModelMatrix, getNearestValidAngle(State::faceRotationAngle), State::faceRotationAxis);
     std::vector<SubCube> subcubes = State::rubiksCube.getSubCubes();
+    float shortestLength = 100.0f;
+    SubCube closestSelectedSubCube;
     for (int i=0; i<subcubes.size(); i++){
         SubCube subcube = subcubes[i];
-        drawSubCube(shader, subcube, i, subcubeModelMatrix, VAO);
+        glm::mat4 modelMatrix;
+        setSubCubeTransformationMatrix(modelMatrix, subcube, i, subcubeModelMatrix); 
+        glm::vec3 intersectPoint;
+        if (testIntersectSubcube(intersectPoint, subcube, modelMatrix, origin, planeDistance)){
+            float length = glm::length(origin - intersectPoint);
+            if (length < shortestLength){
+                shortestLength = length;
+                closestSelectedSubCube = subcube;
+            }
+        }
+        drawSubCube(shader, subcubes[i], i, modelMatrix, VAO);
     }
+    closestSelectedSubCube.isSelected = true;
+    /*
+    for (int i=0; i<subcubes.size(); i++){
+        drawSubCube(shader, subcubes[i], i, VAO);
+    }
+    */
     
 }
 

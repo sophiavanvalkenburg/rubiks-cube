@@ -12,6 +12,11 @@ class SubCube
         unsigned int id;
         glm::vec3 position;
     public:
+    
+        bool isSelected = false;
+        glm::mat4 modelMatrix;
+        glm::mat4 rotationMatrix;
+
         SubCube() = default;
         SubCube(glm::vec3 position, unsigned int id){
             this->position = position;
