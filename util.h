@@ -6,6 +6,14 @@
 
 float MIN_EPSILON = 1e-6;
 
+void copyMat4(glm::mat4 &out, glm::mat4 &in){
+    for (int i=0; i<4; i++){
+        for (int j=0; j<4; j++){
+            out[i][j] = in[i][j];
+        }
+    }
+}
+
 void copyVec3(glm::vec3 &out, glm::vec3 &v){
     out.x = v.x;
     out.y = v.y;
