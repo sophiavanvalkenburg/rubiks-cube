@@ -59,16 +59,16 @@ class CubeFace
             return false;
         }
 
-        void addSubCube(SubCube s){
+        void addSubCube(SubCube *s){
             unsigned int numSubCubes = this->subcubeIds.size();
-            glm::vec3 subcubePos = s.getPosition();
+            glm::vec3 subcubePos = s->getPosition();
             float centerX = getPositionAverage(this->center.x, subcubePos.x, numSubCubes);
             float centerY = getPositionAverage(this->center.y, subcubePos.y, numSubCubes);
             float centerZ = getPositionAverage(this->center.z, subcubePos.z, numSubCubes);
             this->center.x = centerX;
             this->center.y = centerY;
             this->center.z = centerZ;
-            this->subcubeIds.push_back(s.getId());
+            this->subcubeIds.push_back(s->getId());
         }
 
         void print(){
@@ -97,8 +97,8 @@ class RubiksCube
             return 0.025f;
         }
 
-        std::vector<SubCube> getSubCubes(){
-            return this->subcubes;
+        std::vector<SubCube*>* getSubCubes(){
+            return &this->subcubes;
         }
 
         bool faceContainsSubCube(unsigned int faceId, unsigned int subcubeId){
@@ -116,10 +116,10 @@ class RubiksCube
         }
 
     private:
-        std::vector<SubCube> subcubes;
+        std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
 
-        void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube s){
+        void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube *s){
             unsigned int faceIndex = posMap[posCoord];
             if (faceIndex == 0){
                 faceIndex = this->faces.size() + 1; // + 1 because we need to reserve 0 for checking map
@@ -137,8 +137,8 @@ class RubiksCube
             std::map<float, unsigned int> yPosToIndexMap;
             std::map<float, unsigned int> zPosToIndexMap;
             for (unsigned int i=0; i<this->subcubes.size(); i++){
-                SubCube s = this->subcubes[i];
-                glm::vec3 pos = s.getPosition();
+                SubCube *s = this->subcubes[i];
+                glm::vec3 pos = s->getPosition();
                 addSubCubeToFace(xPosToIndexMap, pos.x, s);
                 addSubCubeToFace(yPosToIndexMap, pos.y, s);
                 addSubCubeToFace(zPosToIndexMap, pos.z, s);
@@ -176,7 +176,8 @@ class RubiksCube
                 
             };
             for (unsigned int i=0; i<positions.size(); i++){
-                this->subcubes.push_back(SubCube(positions[i], i));
+                SubCube *s = new SubCube(positions[i], i);
+                this->subcubes.push_back(s);
             }
         }
 

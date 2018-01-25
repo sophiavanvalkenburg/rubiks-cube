@@ -148,15 +148,15 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     glm::vec3 origin = State::cameraPosition;
     glm::mat4 subcubeModelMatrix;
     subcubeModelMatrix = glm::rotate(subcubeModelMatrix, getNearestValidAngle(State::faceRotationAngle), State::faceRotationAxis);
-    std::vector<SubCube> subcubes = State::rubiksCube.getSubCubes();
+    std::vector<SubCube*>* subcubes = State::rubiksCube.getSubCubes();
     float shortestLength = 100.0f;
     SubCube *closestSelectedSubCube = NULL;
-    for (int i=0; i<subcubes.size(); i++){
-        SubCube *subcube = &subcubes[i];
+    for (int i=0; i<subcubes->size(); i++){
+        SubCube *subcube = (*subcubes)[i];
         glm::mat4 rotationMatrix;
         setSubCubeTransformationMatrix(subcube->modelMatrix, subcube, i, subcubeModelMatrix, rotationMatrix); 
         glm::vec3 intersectPoint;
-        if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
+        if (!State::faceRotationBtnIsDown && testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
             float length = glm::length(origin - intersectPoint);
             if (length < shortestLength){
                 shortestLength = length;
@@ -164,9 +164,9 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
             }
         }
     }
-    if (closestSelectedSubCube) closestSelectedSubCube->isSelected = true;
-    for (int i=0; i<subcubes.size(); i++){
-        drawSubCube(shader, &subcubes[i], i, VAO);
+    if (!State::faceRotationBtnIsDown && closestSelectedSubCube) closestSelectedSubCube->isSelected = true;
+    for (int i=0; i<subcubes->size(); i++){
+        drawSubCube(shader, (*subcubes)[i], i, VAO);
     }
 }
 
