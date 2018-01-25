@@ -153,6 +153,8 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     SubCube *closestSelectedSubCube = NULL;
     for (int i=0; i<subcubes->size(); i++){
         SubCube *subcube = (*subcubes)[i];
+        // keep the subcube selected if you're moving the face
+        if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
         glm::mat4 rotationMatrix;
         setSubCubeTransformationMatrix(subcube->modelMatrix, subcube, i, subcubeModelMatrix, rotationMatrix); 
         glm::vec3 intersectPoint;
