@@ -5,8 +5,6 @@
 #include <glm/glm.hpp>
 #include "RubiksCube.h"
 
-enum Axis {X, Y, Z};
-
 class State {
 
 public:

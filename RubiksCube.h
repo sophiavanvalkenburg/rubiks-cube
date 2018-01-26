@@ -5,6 +5,8 @@
 #include <map>
 #include <glm/glm.hpp>
 
+enum class Axis {X, Y, Z};
+
 class SubCube
 {
     private:
