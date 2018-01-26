@@ -11,6 +11,7 @@ class SubCube
     private:
         unsigned int id;
         glm::vec3 position;
+        glm::vec3 rotation = glm::vec3();
     public:
 
         bool isSelected = false;
@@ -24,6 +25,25 @@ class SubCube
 
         glm::vec3 getPosition(){
             return this->position;
+        }
+
+        glm::vec3* getRotation(){
+            return &this->rotation;
+        }
+
+        void setRotationOnAxis(float angle, Axis axis){
+            switch(axis){
+                case Axis.X: this->rotation.x = angle;
+                case Axis.Y: this->rotation.y = angle;
+                case Axis.Z: this->rotation.z = angle;
+            }
+        }
+
+        glm::mat4 getRotationMatrix(){
+            glm::mat4 x = glm::rotate(glm::mat4(), this->rotation.x, State::X_AXIS);
+            glm::mat4 y = glm::rotate(glm::mat4(), this->rotation.y, State::Y_AXIS);
+            glm::mat4 z = glm::rotate(glm::mat4(), this->rotation.z, State::Z_AXIS);
+            return x * y * z;
         }
 
         unsigned int getId(){
