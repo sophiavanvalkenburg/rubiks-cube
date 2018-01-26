@@ -146,24 +146,29 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     // plane distance works since we don't need to intersect the inside of the cube
     float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
     glm::vec3 origin = State::cameraPosition;
-    glm::mat4 subcubeModelMatrix;
-    subcubeModelMatrix = glm::rotate(subcubeModelMatrix, getNearestValidAngle(State::faceRotationAngle), State::faceRotationAxis);
     std::vector<SubCube*>* subcubes = State::rubiksCube.getSubCubes();
+    float faceRotationAngle = getNearestValidAngle(State::faceRotationAngle);
     float shortestLength = 100.0f;
     SubCube *closestSelectedSubCube = NULL;
     for (int i=0; i<subcubes->size(); i++){
         SubCube *subcube = (*subcubes)[i];
+        subcube->setRotationOnAxis(faceRotationAngle, State::faceRotationAxis);
+        glm::mat4 localRotationMatrix = subcube->getRotationMatrix();
         // keep the subcube selected if you're moving the face
         if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
         glm::mat4 rotationMatrix;
-        setSubCubeTransformationMatrix(subcube->modelMatrix, subcube, i, subcubeModelMatrix, rotationMatrix); 
+        setSubCubeTransformationMatrix(subcube->modelMatrix, subcube, i, localRotationMatrix, rotationMatrix); 
         glm::vec3 intersectPoint;
-        if (!State::faceRotationBtnIsDown && testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
-            float length = glm::length(origin - intersectPoint);
-            if (length < shortestLength){
-                shortestLength = length;
-                closestSelectedSubCube = subcube;
+        if (!State::faceRotationBtnIsDown){
+            if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
+                float length = glm::length(origin - intersectPoint);
+                if (length < shortestLength){
+                    shortestLength = length;
+                    closestSelectedSubCube = subcube;
+                }
             }
+        } else {
+            
         }
     }
     if (!State::faceRotationBtnIsDown && closestSelectedSubCube) closestSelectedSubCube->isSelected = true;

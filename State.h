@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include "RubiksCube.h"
 
+enum Axis {X, Y, Z};
+
 class State {
 
 public:
@@ -35,6 +37,7 @@ public:
     static glm::vec3 Y_AXIS;
     static glm::vec3 Z_AXIS;
     static glm::vec3 faceRotationAxis;
+    static Axis faceRotationAxisEnum;
     static float faceRotationAngle;
     static float faceLastY;
     static bool faceFirstMouse;

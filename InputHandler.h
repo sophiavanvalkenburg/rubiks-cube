@@ -10,12 +10,15 @@ void setRotationAxis(GLFWwindow* window){
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
         State::faceRotationAxis = State::X_AXIS;
+        State::faceRotationAxisEnum = Axis.X;
         State::faceRotationBtnIsDown = true;
     } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
         State::faceRotationAxis = State::Y_AXIS;
+        State::faceRotationAxisEnum = Axis.Y;
         State::faceRotationBtnIsDown = true;
     } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
         State::faceRotationAxis = State::Z_AXIS;
+        State::faceRotationAxisEnum = Axis.Z;
         State::faceRotationBtnIsDown = true;
     } else {
         State::faceRotationBtnIsDown = false;

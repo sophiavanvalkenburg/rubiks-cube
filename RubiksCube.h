@@ -4,51 +4,23 @@
 #include <vector>
 #include <map>
 #include <glm/glm.hpp>
-#include <iostream>
 
 class SubCube
 {
     private:
         unsigned int id;
         glm::vec3 position;
-        glm::vec3 rotation = glm::vec3();
+        glm::vec3 rotation;
+
     public:
-
-        bool isSelected = false;
-        glm::mat4 modelMatrix = glm::mat4();
-
-        SubCube() = default;
-        SubCube(glm::vec3 position, unsigned int id){
-            this->position = position;
-            this->id = id;
-        }
-
-        glm::vec3 getPosition(){
-            return this->position;
-        }
-
-        glm::vec3* getRotation(){
-            return &this->rotation;
-        }
-
-        void setRotationOnAxis(float angle, Axis axis){
-            switch(axis){
-                case Axis.X: this->rotation.x = angle;
-                case Axis.Y: this->rotation.y = angle;
-                case Axis.Z: this->rotation.z = angle;
-            }
-        }
-
-        glm::mat4 getRotationMatrix(){
-            glm::mat4 x = glm::rotate(glm::mat4(), this->rotation.x, State::X_AXIS);
-            glm::mat4 y = glm::rotate(glm::mat4(), this->rotation.y, State::Y_AXIS);
-            glm::mat4 z = glm::rotate(glm::mat4(), this->rotation.z, State::Z_AXIS);
-            return x * y * z;
-        }
-
-        unsigned int getId(){
-            return this->id;
-        }
+        bool isSelected;
+        glm::mat4 modelMatrix;
+        SubCube(glm::vec3 position, unsigned int id);
+        glm::vec3 getPosition();
+        glm::vec3* getRotation();
+        void setRotationOnAxis(float angle, Axis axis);
+        glm::mat4 getRotationMatrix();
+        unsigned int getId();
 };
 
 class CubeFace
@@ -56,150 +28,38 @@ class CubeFace
     private:
         std::vector<unsigned int> subcubeIds;
         glm::vec3 center;
-
-        float getPositionAverage(float centerPosition, float newPosition, int numSubCubes){
-            return (numSubCubes * centerPosition + newPosition) / (numSubCubes + 1);
-        }
+        float getPositionAverage(float centerPosition, float newPosition, int numSubCubes);
 
     public:
         CubeFace() = default;
-
-        unsigned int getSize(){
-            return this->subcubeIds.size();
-        }
-
-        glm::vec3 getCenter(){
-            return this->center;
-        }
-
-        bool containsSubCube(unsigned int subcubeId){
-            for (unsigned int i=0; i<this->subcubeIds.size(); i++){
-                if (this->subcubeIds[i] == subcubeId) return true;
-            }
-            return false;
-        }
-
-        void addSubCube(SubCube *s){
-            unsigned int numSubCubes = this->subcubeIds.size();
-            glm::vec3 subcubePos = s->getPosition();
-            float centerX = getPositionAverage(this->center.x, subcubePos.x, numSubCubes);
-            float centerY = getPositionAverage(this->center.y, subcubePos.y, numSubCubes);
-            float centerZ = getPositionAverage(this->center.z, subcubePos.z, numSubCubes);
-            this->center.x = centerX;
-            this->center.y = centerY;
-            this->center.z = centerZ;
-            this->subcubeIds.push_back(s->getId());
-        }
-
-        void print(){
-            for (unsigned int i=0; i<this->subcubeIds.size(); i++){
-                std::cout << this->subcubeIds[i] << " ";
-            }
-            std::cout << std::endl;
-        }
+        
+        unsigned int getSize();
+        glm::vec3 getCenter();
+        bool containsSubCube(unsigned int subcubeId);
+        void addSubCube(SubCube *s);
+        void print();
 };
 
 
 class RubiksCube
 {
     public:
-        RubiksCube(){
-            this->initSubCubes();
-            this->initFaces();  
-        }
-
+        RubiksCube();
         glm::mat4 modelMatrix;
         glm::mat4 viewMatrix;
-        float pitchAngle = 0.0f;
-        float yawAngle = 0.0f;
-
-        const float getSubCubeMargin(){
-            return 0.025f;
-        }
-
-        std::vector<SubCube*>* getSubCubes(){
-            return &this->subcubes;
-        }
-
-        bool faceContainsSubCube(unsigned int faceId, unsigned int subcubeId){
-            return this->faces[faceId].containsSubCube(subcubeId);
-        }
-
-        glm::vec3 getFaceCenter(unsigned int faceId){
-            return this->faces[faceId].getCenter();
-        }
-
-        void printFaces(){
-            for (unsigned int i=0; i<this->faces.size(); i++){
-                this->faces[i].print();
-            }
-        }
+        float pitchAngle;
+        float yawAngle;
+        const float getSubCubeMargin();
+        std::vector<SubCube*>* getSubCubes();
+        bool faceContainsSubCube(unsigned int faceId, unsigned int subcubeId);
+        glm::vec3 getFaceCenter(unsigned int faceId);
+        void printFaces();
 
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
-
-        void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube *s){
-            unsigned int faceIndex = posMap[posCoord];
-            if (faceIndex == 0){
-                faceIndex = this->faces.size() + 1; // + 1 because we need to reserve 0 for checking map
-                posMap[posCoord] = faceIndex;                    
-                CubeFace cubeface;
-                this->faces.push_back(cubeface);
-            }
-            CubeFace cubeface = this->faces[faceIndex - 1];
-            cubeface.addSubCube(s);
-            this->faces[faceIndex - 1] = cubeface;
-        }
-        void initFaces(){
-            // construct the faces by grouping together all subcubes that share an X, Y, or Z value
-            std::map<float, unsigned int> xPosToIndexMap;
-            std::map<float, unsigned int> yPosToIndexMap;
-            std::map<float, unsigned int> zPosToIndexMap;
-            for (unsigned int i=0; i<this->subcubes.size(); i++){
-                SubCube *s = this->subcubes[i];
-                glm::vec3 pos = s->getPosition();
-                addSubCubeToFace(xPosToIndexMap, pos.x, s);
-                addSubCubeToFace(yPosToIndexMap, pos.y, s);
-                addSubCubeToFace(zPosToIndexMap, pos.z, s);
-            }
-        }
-        void initSubCubes(){
-            std::vector<glm::vec3> positions = {
-                glm::vec3(0.0f, 0.0f, 0.0f),
-                glm::vec3(0.325f, 0.0f, 0.0f),
-                glm::vec3(-0.325f, 0.0f, 0.0f),
-                glm::vec3(0.0f, 0.325f, 0.0f),
-                glm::vec3(0.0f, -0.325f,0.0f),
-                glm::vec3(0.325f, 0.325f, 0.0f),
-                glm::vec3(-0.325f, 0.325f, 0.0f),
-                glm::vec3(0.325f, -0.325f, 0.0f),
-                glm::vec3(-0.325f, -0.325f, 0.0f),
-                glm::vec3(0.0f, 0.0f, 0.325f), 
-                glm::vec3(0.325f, 0.0f, 0.325f),
-                glm::vec3(-0.325f, 0.0f, 0.325f), 
-                glm::vec3(0.0f, 0.325f, 0.325f),
-                glm::vec3(0.0f, -0.325f, 0.325f),
-                glm::vec3(0.325f, 0.325f, 0.325f),
-                glm::vec3(-0.325f, 0.325f, 0.325f),
-                glm::vec3(0.325f, -0.325f, 0.325f),
-                glm::vec3(-0.325f, -0.325f, 0.325f),
-                glm::vec3(0.0f, 0.0f, -0.325f), 
-                glm::vec3(0.325f, 0.0f, -0.325f),
-                glm::vec3(-0.325f, 0.0f, -0.325f), 
-                glm::vec3(0.0f, 0.325f, -0.325f),
-                glm::vec3(0.0f, -0.325f, -0.325f),
-                glm::vec3(0.325f, 0.325f, -0.325f),
-                glm::vec3(-0.325f, 0.325f, -0.325f),
-                glm::vec3(0.325f, -0.325f, -0.325f),
-                glm::vec3(-0.325f, -0.325f, -0.325f)
-                
-            };
-            for (unsigned int i=0; i<positions.size(); i++){
-                SubCube *s = new SubCube(positions[i], i);
-                this->subcubes.push_back(s);
-            }
-        }
-
+        void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube *s);
+        void initFaces();
+        void initSubCubes();
 };
 #endif

@@ -34,6 +34,7 @@ glm::vec3 State::X_AXIS = glm::vec3(1.0f, 0.0f, 0.0f);
 glm::vec3 State::Y_AXIS = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 State::Z_AXIS = glm::vec3(0.0f, 0.0f, 1.0f);
 glm::vec3 State::faceRotationAxis = State::X_AXIS;
+Axis State::faceRotationAxisEnum = Axis.X;
 float State::faceRotationAngle = 0.0f;
 float State::faceLastY = 300;
 bool State::faceFirstMouse = true;
