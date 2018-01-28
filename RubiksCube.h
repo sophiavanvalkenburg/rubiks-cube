@@ -34,7 +34,6 @@ class CubeFace
 
     public:
         CubeFace() = default;
-        
         unsigned int getSize();
         glm::vec3 getCenter();
         bool containsSubCube(unsigned int subcubeId);
