@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include "State.h"
 #include "RubiksCube.h"
-#include "util.h"
+#include "Util.h"
 #include "Debug.h"
 
 void setRotationAxis(GLFWwindow* window){
@@ -58,7 +58,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
         State::rubiksCube.pitchAngle = 0.0f;
         State::rubiksCube.yawAngle = 0.0f;
 
-        mouseClicks.push_back(mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
+        mouseClicks.push_back(Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
     }
 
 }
@@ -88,7 +88,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             }
             float yoffset = calculatePositionOffset(ypos, State::faceLastY);
             State::faceLastY = ypos;
-            State::faceRotationAngle += glm::radians(yoffset);
+            State::faceRotationAngleOffset = glm::radians(yoffset);
         } else {
             if (State::cubeFirstMouse)
             {

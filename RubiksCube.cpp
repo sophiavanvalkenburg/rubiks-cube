@@ -4,6 +4,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
 #include "State.h"
+#include "Util.h"
 
 /*** SubCube ***/
 
@@ -26,17 +27,21 @@ glm::vec3* SubCube::getRotation()
     return &this->rotation;
 };
 
-void SubCube::setRotationOnAxis(float angle, Axis axis)
+void SubCube::setRotationOnAxis(float angleOffset, Axis axis)
 {
+    float angle;
     switch(axis){
         case Axis::X:
-            this->rotation.x = angle; 
+            angle = this->rotation.x + angleOffset; 
+            this->rotation.x = Util::getNearestValidAngle(angle);
             break;
         case Axis::Y: 
-            this->rotation.y = angle;
+            angle = this->rotation.y += angleOffset;
+            this->rotation.y = Util::getNearestValidAngle(angle);
             break;
         case Axis::Z: 
-            this->rotation.z = angle;
+            angle = this->rotation.z += angleOffset;
+            this->rotation.z = Util::getNearestValidAngle(angle);
             break;
     }
 };

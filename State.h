@@ -36,7 +36,7 @@ public:
     static glm::vec3 Z_AXIS;
     static glm::vec3 faceRotationAxis;
     static Axis faceRotationAxisEnum;
-    static float faceRotationAngle;
+    static float faceRotationAngleOffset;
     static float faceLastY;
     static bool faceFirstMouse;
 };

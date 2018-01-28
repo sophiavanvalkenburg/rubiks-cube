@@ -11,9 +11,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "Util.h"
 #include "RubiksCube.h"
 #include "CubeModel.h"
-#include "util.h"
 #include "RenderEngine.h"
 #include "State.h"
 #include "Window.h"
@@ -43,9 +43,7 @@ glm::vec3 screenSpaceToWorldSpace(double xpos, double ypos){
     return worldCoords;
 }
 
-float getNearestValidAngle(float angle){
-    return (M_PI_4 / 2 ) * std::round(2 * angle / M_PI_4);
-}
+
 
 bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, glm::vec3 planeNormal, float planeDistance)
 {
@@ -54,12 +52,12 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
     // planeNormal: direction of plane (collision direction)
     // planeDistance: distance from plane to origin (will be negative since planeNormal is pointing away from plane)
     float rayAndNormalDotProduct = glm::dot(intersectRay, planeNormal);
-    if (std::abs(rayAndNormalDotProduct) <= MIN_EPSILON) return false;
+    if (std::abs(rayAndNormalDotProduct) <= Util::MIN_EPSILON) return false;
     float originAndNormalDotProduct = glm::dot(origin, planeNormal);
     float intersectDistance = -1 * (originAndNormalDotProduct + planeDistance) / rayAndNormalDotProduct;
     if (intersectDistance < 0) return false;
     glm::vec3 intersectPoint = origin + glm::vec3(intersectRay.x * intersectDistance, intersectRay.y * intersectDistance, intersectRay.z * intersectDistance);
-    copyVec3(out, intersectPoint);
+    Util::copyVec3(out, intersectPoint);
     return true;
 }
 
@@ -70,14 +68,14 @@ bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<normals.size(); i++){
-        glm::vec3 normal = mat4xVec3(glm::vec3(), rotationMatrix, normals[i]);
+        glm::vec3 normal = Util::mat4xVec3(glm::vec3(), rotationMatrix, normals[i]);
         if (!intersectPlane(intersectPoint, origin, intersectRay, normal, planeDistance)) continue;
-        copyVec3(out, intersectPoint);
+        Util::copyVec3(out, intersectPoint);
         glm::vec3 max = facesMinMax[2 * i];
         glm::vec3 min = facesMinMax[2 * i + 1];
-        glm::vec3 intersectPointInv = mat4xVec3(glm::vec3(), glm::inverse(subcube->modelMatrix), intersectPoint);
-        if (lte(intersectPointInv.x, max.x) && lte(intersectPointInv.y, max.y) && lte(intersectPointInv.z, max.z) &&
-          gte(intersectPointInv.x, min.x) && gte(intersectPointInv.y, min.y) && gte(intersectPointInv.z, min.z)) 
+        glm::vec3 intersectPointInv = Util::mat4xVec3(glm::vec3(), glm::inverse(subcube->modelMatrix), intersectPoint);
+        if (Util::lte(intersectPointInv.x, max.x) && Util::lte(intersectPointInv.y, max.y) && Util::lte(intersectPointInv.z, max.z) &&
+          Util::gte(intersectPointInv.x, min.x) && Util::gte(intersectPointInv.y, min.y) && Util::gte(intersectPointInv.z, min.z)) 
         {
             return true;
         }
@@ -89,12 +87,12 @@ bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix
 bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix, glm::vec3 origin, float planeDistance)
 {
     glm::vec3 intersectRay;
-    copyVec3(intersectRay, State::mouseWorldPos);
+    Util::copyVec3(intersectRay, State::mouseWorldPos);
     bool hit = intersectSubCube(out, subcube, rotationMatrix, origin, intersectRay, planeDistance);
 
     hits.push_back(out);
     if (hit){
-        printVec3(out);
+        Util::printVec3(out);
         std::cout << "HIT" << std::endl;
     }
     return hit;
@@ -102,8 +100,8 @@ bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMa
 
 void updateCubeMatrix()
 {
-    glm::vec3 right = mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::vec3 up = mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::vec3 right = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::vec3 up = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
     State::rubiksCube.modelMatrix = glm::rotate(State::rubiksCube.modelMatrix, State::rubiksCube.pitchAngle, right);
     State::rubiksCube.modelMatrix = glm::rotate(State::rubiksCube.modelMatrix, State::rubiksCube.yawAngle, up);
     State::rubiksCube.viewMatrix = glm::inverse(State::rubiksCube.modelMatrix);
@@ -132,11 +130,11 @@ void setSubCubeTransformationMatrix(glm::mat4 &out, glm::mat4 &rotationMatrix, S
         inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
         rotationMatrix = State::rubiksCube.modelMatrix * inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
         transformMatrix = rotationMatrix * subcubeTranslateMatrix;
-        copyMat4(out, transformMatrix);
+        Util::copyMat4(out, transformMatrix);
     } else {
         rotationMatrix = State::rubiksCube.modelMatrix;
         transformMatrix = State::rubiksCube.modelMatrix * subcubeTranslateMatrix;
-        copyMat4(out, transformMatrix);
+        Util::copyMat4(out, transformMatrix);
     }
 }
 
@@ -149,12 +147,11 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
     glm::vec3 origin = State::cameraPosition;
     std::vector<SubCube*>* subcubes = State::rubiksCube.getSubCubes();
-    float faceRotationAngle = getNearestValidAngle(State::faceRotationAngle);
     float shortestLength = 100.0f;
     SubCube *closestSelectedSubCube = NULL;
     for (int i=0; i<subcubes->size(); i++){
         SubCube *subcube = (*subcubes)[i];
-        subcube->setRotationOnAxis(faceRotationAngle, State::faceRotationAxisEnum);
+        subcube->setRotationOnAxis(State::faceRotationAngleOffset, State::faceRotationAxisEnum);
         // keep the subcube selected if you're moving the face
         if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
         glm::mat4 rotationMatrix;

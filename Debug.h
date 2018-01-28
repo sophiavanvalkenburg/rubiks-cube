@@ -4,7 +4,7 @@
 #include "shader.h"
 #include "State.h"
 #include "RenderEngine.h"
-#include "util.h"
+#include "Util.h"
 #include "RubiksCube.h"
 
 std::vector<glm::vec3> mouseClicks;
@@ -30,9 +30,9 @@ void drawHits(Shader &shader, GLuint &VAO, GLuint &VBO)
 void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
 {
     glm::vec3 origin;
-    copyVec3(origin, State::cameraPosition);
+    Util::copyVec3(origin, State::cameraPosition);
     origin.z -= 0.01; // slightly in front of camera so we can see it
-    glm::vec3 cam = mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, origin);
+    glm::vec3 cam = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, origin);
 
     for (unsigned int i=0; i<mouseClicks.size(); i++){
         GLfloat lineVertices[12] = {
