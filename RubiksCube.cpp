@@ -30,28 +30,24 @@ glm::vec3* SubCube::getRotation()
 
 void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
 {
-    float angle;
     switch(axis){
         case Axis::X:
-            angle = this->rotation.x + angleOffset; 
-            this->rotation.x = Util::getNearestValidAngle(angle);
+            this->rotation.x += angleOffset; 
             break;
         case Axis::Y: 
-            angle = this->rotation.y += angleOffset;
-            this->rotation.y = Util::getNearestValidAngle(angle);
+            this->rotation.y += angleOffset;
             break;
         case Axis::Z: 
-            angle = this->rotation.z += angleOffset;
-            this->rotation.z = Util::getNearestValidAngle(angle);
+            this->rotation.z += angleOffset;
             break;
     }
 };
 
 glm::mat4 SubCube::getRotationMatrix()
 {
-    glm::mat4 x = glm::rotate(glm::mat4(), this->rotation.x, State::X_AXIS);
-    glm::mat4 y = glm::rotate(glm::mat4(), this->rotation.y, State::Y_AXIS);
-    glm::mat4 z = glm::rotate(glm::mat4(), this->rotation.z, State::Z_AXIS);
+    glm::mat4 x = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.x), State::X_AXIS);
+    glm::mat4 y = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.y), State::Y_AXIS);
+    glm::mat4 z = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.z), State::Z_AXIS);
     return x * y * z;
 };
 
