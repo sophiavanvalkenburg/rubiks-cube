@@ -13,6 +13,7 @@ class SubCube
         unsigned int id;
         glm::vec3 position;
         glm::vec3 rotation;
+        std::map<Axis, unsigned int> faceMap;
 
     public:
         bool isSelected;
@@ -23,6 +24,7 @@ class SubCube
         void setRotationOnAxis(float angle, Axis axis);
         glm::mat4 getRotationMatrix();
         unsigned int getId();
+        void addFace(Axis axis, unsigned int faceId);
 };
 
 class CubeFace
@@ -59,7 +61,7 @@ class RubiksCube
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
-        void addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube *s);
+        void addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s);
         void initFaces();
         void initSubCubes();
 };

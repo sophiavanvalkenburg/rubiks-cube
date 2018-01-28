@@ -1,8 +1,9 @@
-#include "RubiksCube.h"
+#include <map>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <iostream>
+#include "RubiksCube.h"
 #include "State.h"
 #include "Util.h"
 
@@ -58,6 +59,11 @@ unsigned int SubCube::getId()
 {
     return this->id;
 };
+
+void SubCube::addFace(Axis axis, unsigned int faceId)
+{
+    this->faceMap[axis] = faceId;
+}
 
 
 /*** CubeFace ***/
@@ -144,7 +150,7 @@ void RubiksCube::printFaces()
     }
 };
 
-void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, float posCoord, SubCube *s)
+void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s)
 {
     unsigned int faceIndex = posMap[posCoord];
     if (faceIndex == 0){
@@ -155,6 +161,7 @@ void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, float p
     }
     CubeFace cubeface = this->faces[faceIndex - 1];
     cubeface.addSubCube(s);
+    s->addFace(axis, faceIndex);
     this->faces[faceIndex - 1] = cubeface;
 };
 
@@ -167,9 +174,9 @@ void RubiksCube::initFaces()
     for (unsigned int i=0; i<this->subcubes.size(); i++){
         SubCube *s = this->subcubes[i];
         glm::vec3 pos = s->getPosition();
-        addSubCubeToFace(xPosToIndexMap, pos.x, s);
-        addSubCubeToFace(yPosToIndexMap, pos.y, s);
-        addSubCubeToFace(zPosToIndexMap, pos.z, s);
+        addSubCubeToFace(xPosToIndexMap, Axis::X, pos.x, s);
+        addSubCubeToFace(yPosToIndexMap, Axis::Y, pos.y, s);
+        addSubCubeToFace(zPosToIndexMap, Axis::Z, pos.z, s);
     }
 };
 
