@@ -88,7 +88,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             }
             float yoffset = calculatePositionOffset(ypos, State::faceLastY);
             State::faceLastY = ypos;
-            State::faceRotationAngleOffset = glm::radians(yoffset);
+            State::rubiksCube.updateSubCubeRotationAngles(State::faceRotationAxisEnum, glm::radians(yoffset));
         } else {
             if (State::cubeFirstMouse)
             {

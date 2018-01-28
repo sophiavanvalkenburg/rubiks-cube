@@ -28,7 +28,7 @@ glm::vec3* SubCube::getRotation()
     return &this->rotation;
 };
 
-void SubCube::setRotationOnAxis(float angleOffset, Axis axis)
+void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
 {
     float angle;
     switch(axis){
@@ -131,6 +131,15 @@ const float RubiksCube::getSubCubeMargin()
 std::vector<SubCube*>* RubiksCube::getSubCubes()
 {
     return &this->subcubes;
+};
+
+void RubiksCube::updateSubCubeRotationAngles(Axis axis, float angleOffset)
+{
+    for (unsigned int i = 0; i < this->subcubes.size(); i++)
+    {
+        SubCube *s = this->subcubes[i];
+        s->setRotationOnAxis(axis, angleOffset);
+    }
 };
 
 bool RubiksCube::faceContainsSubCube(unsigned int faceId, unsigned int subcubeId)
