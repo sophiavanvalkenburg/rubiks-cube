@@ -92,8 +92,8 @@ bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMa
 
     hits.push_back(out);
     if (hit){
-        Util::printVec3(out);
-        std::cout << "HIT" << std::endl;
+        //Util::printVec3(out);
+        //std::cout << "HIT" << std::endl;
     }
     return hit;
 }
@@ -107,7 +107,7 @@ void updateCubeMatrix()
     State::rubiksCube.viewMatrix = glm::inverse(State::rubiksCube.modelMatrix);
 }
 
-void drawSubCube(Shader &shader, SubCube *subcube, unsigned int subcubeId, GLuint &VAO)
+void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 {
     GLfloat isSelectedVal = subcube->isSelected ? 1.0f : 0.0f;
     GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
@@ -119,23 +119,18 @@ void drawSubCube(Shader &shader, SubCube *subcube, unsigned int subcubeId, GLuin
 
 void setSubCubeTransformationMatrix(glm::mat4 &out, glm::mat4 &rotationMatrix, SubCube *subcube){
     unsigned int subcubeId = subcube->getId();
+    unsigned int faceId = subcube->getFace(State::faceRotationAxisEnum);
     glm::mat4 transformMatrix = glm::mat4();
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, subcube->getPosition());
-    if (State::rubiksCube.faceContainsSubCube(0, subcubeId)){
-        glm::mat4 localRotationMatrix = subcube->getRotationMatrix();
-        glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(0);
-        glm::mat4 translateSubCubeMatrix;
-        glm::mat4 inverseTranslateSubCubeMatrix;
-        translateSubCubeMatrix = glm::translate(translateSubCubeMatrix, faceCenter);
-        inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
-        rotationMatrix = State::rubiksCube.modelMatrix * inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
-        transformMatrix = rotationMatrix * subcubeTranslateMatrix;
-        Util::copyMat4(out, transformMatrix);
-    } else {
-        rotationMatrix = State::rubiksCube.modelMatrix;
-        transformMatrix = State::rubiksCube.modelMatrix * subcubeTranslateMatrix;
-        Util::copyMat4(out, transformMatrix);
-    }
+    glm::mat4 localRotationMatrix = subcube->getRotationMatrix();
+    glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
+    glm::mat4 translateSubCubeMatrix;
+    glm::mat4 inverseTranslateSubCubeMatrix;
+    translateSubCubeMatrix = glm::translate(translateSubCubeMatrix, faceCenter);
+    inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
+    rotationMatrix = State::rubiksCube.modelMatrix * inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
+    transformMatrix = rotationMatrix * subcubeTranslateMatrix;
+    Util::copyMat4(out, transformMatrix);
 }
 
 void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVerticesSize, const GLfloat *cubeVertices)
@@ -164,13 +159,16 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
                     closestSelectedSubCube = subcube;
                 }
             }
-        } else {
-            
         }
     }
-    if (!State::faceRotationBtnIsDown && closestSelectedSubCube) closestSelectedSubCube->isSelected = true;
+    // TODO: reset rubikscube variables somewhere?
+    if (!State::faceRotationBtnIsDown && closestSelectedSubCube){
+        State::rubiksCube.selectedSubCubeId = closestSelectedSubCube->getId();
+        State::rubiksCube.selectedFaceId = closestSelectedSubCube->getFace(State::faceRotationAxisEnum);
+        closestSelectedSubCube->isSelected = true;
+    }
     for (int i=0; i<subcubes->size(); i++){
-        drawSubCube(shader, (*subcubes)[i], i, VAO);
+        drawSubCube(shader, (*subcubes)[i], VAO);
     }
 }
 

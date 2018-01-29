@@ -61,6 +61,11 @@ void SubCube::addFace(Axis axis, unsigned int faceId)
     this->faceMap[axis] = faceId;
 }
 
+unsigned int SubCube::getFace(Axis axis)
+{
+    return this->faceMap[axis];
+}
+
 
 /*** CubeFace ***/
 
@@ -134,7 +139,9 @@ void RubiksCube::updateSubCubeRotationAngles(Axis axis, float angleOffset)
     for (unsigned int i = 0; i < this->subcubes.size(); i++)
     {
         SubCube *s = this->subcubes[i];
-        s->setRotationOnAxis(axis, angleOffset);
+        if (s->getFace(axis) == this->selectedFaceId){
+            s->setRotationOnAxis(axis, angleOffset);
+        }
     }
 };
 
@@ -182,6 +189,10 @@ void RubiksCube::initFaces()
         addSubCubeToFace(xPosToIndexMap, Axis::X, pos.x, s);
         addSubCubeToFace(yPosToIndexMap, Axis::Y, pos.y, s);
         addSubCubeToFace(zPosToIndexMap, Axis::Z, pos.z, s);
+    }
+    for (unsigned int i = 0; i < this->faces.size(); i++){
+        // TODO: set centers after all cubes are added   
+        Util::printVec3(this->getFaceCenter(i));
     }
 };
 

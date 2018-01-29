@@ -24,6 +24,7 @@ class SubCube
         void setRotationOnAxis(Axis axis, float angleOffset);
         glm::mat4 getRotationMatrix();
         unsigned int getId();
+        unsigned int getFace(Axis axis);
         void addFace(Axis axis, unsigned int faceId);
 };
 
@@ -48,6 +49,8 @@ class RubiksCube
 {
     public:
         RubiksCube();
+        unsigned int selectedSubCubeId;
+        unsigned int selectedFaceId;
         glm::mat4 modelMatrix;
         glm::mat4 viewMatrix;
         float pitchAngle;
@@ -58,7 +61,6 @@ class RubiksCube
         glm::vec3 getFaceCenter(unsigned int faceId);
         void printFaces();
         void updateSubCubeRotationAngles(Axis axis, float angleOffset);
-
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
