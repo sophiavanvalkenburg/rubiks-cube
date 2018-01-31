@@ -23,6 +23,11 @@ glm::vec3 SubCube::getPosition()
     return this->position;
 };
 
+void SubCube::setPosition(glm::vec3 newPos)
+{
+    this->position = newPos;
+}
+
 glm::vec3* SubCube::getRotation()
 {
     return &this->rotation;
@@ -143,6 +148,25 @@ void RubiksCube::updateSubCubeRotationAngles(Axis axis, float angleOffset)
             s->setRotationOnAxis(axis, angleOffset);
         }
     }
+};
+
+void RubiksCube::updateSubCubePositions()
+{
+    glm::mat4 inverseTranslateMatrix;
+    glm::mat4 inverseRubiksCubeModelMatrix;
+    glm::mat4 subCubeTransformMatrix;
+    for (unsigned int i = 0; i < this->subcubes.size(); i++)
+    {
+        SubCube *s = this->subcubes[i];
+        glm::vec3 oldPos = s->getPosition();
+        inverseTranslateMatrix = glm::inverse(glm::translate(glm::mat4(), oldPos));
+        inverseRubiksCubeModelMatrix = glm::inverse(State::rubiksCube.modelMatrix);
+        subCubeTransformMatrix = inverseRubiksCubeModelMatrix * s->modelMatrix * inverseTranslateMatrix;
+        glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), subCubeTransformMatrix, oldPos);
+        s->setPosition(newPos);
+    }
+    this->faces.clear();
+    this->initFaces();
 };
 
 bool RubiksCube::faceContainsSubCube(unsigned int faceId, unsigned int subcubeId)

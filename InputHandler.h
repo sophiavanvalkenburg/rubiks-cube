@@ -85,6 +85,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             if (State::faceFirstMouse){
                 State::faceLastY = ypos;
                 State::faceFirstMouse = false;
+                State::rubiksCube.updateSubCubePositions();
             }
             float yoffset = calculatePositionOffset(ypos, State::faceLastY);
             State::faceLastY = ypos;

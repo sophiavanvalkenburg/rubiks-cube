@@ -20,6 +20,7 @@ class SubCube
         glm::mat4 modelMatrix;
         SubCube(glm::vec3 position, unsigned int id);
         glm::vec3 getPosition();
+        void setPosition(glm::vec3 newPos);
         glm::vec3* getRotation();
         void setRotationOnAxis(Axis axis, float angleOffset);
         glm::mat4 getRotationMatrix();
@@ -61,6 +62,7 @@ class RubiksCube
         glm::vec3 getFaceCenter(unsigned int faceId);
         void printFaces();
         void updateSubCubeRotationAngles(Axis axis, float angleOffset);
+        void updateSubCubePositions();
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
