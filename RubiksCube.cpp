@@ -171,10 +171,11 @@ void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis ax
         CubeFace cubeface;
         this->faces.push_back(cubeface);
     }
-    CubeFace cubeface = this->faces[faceIndex - 1];
+    unsigned int faceId = faceIndex - 1;
+    CubeFace cubeface = this->faces[faceId];
     cubeface.addSubCube(s);
-    s->addFace(axis, faceIndex);
-    this->faces[faceIndex - 1] = cubeface;
+    s->addFace(axis, faceId);
+    this->faces[faceId] = cubeface;
 };
 
 void RubiksCube::initFaces()
@@ -189,10 +190,6 @@ void RubiksCube::initFaces()
         addSubCubeToFace(xPosToIndexMap, Axis::X, pos.x, s);
         addSubCubeToFace(yPosToIndexMap, Axis::Y, pos.y, s);
         addSubCubeToFace(zPosToIndexMap, Axis::Z, pos.z, s);
-    }
-    for (unsigned int i = 0; i < this->faces.size(); i++){
-        // TODO: set centers after all cubes are added   
-        Util::printVec3(this->getFaceCenter(i));
     }
 };
 
