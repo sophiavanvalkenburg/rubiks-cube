@@ -82,6 +82,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
 
     if (State::mouseBtnIsDown){
         if (State::faceRotationBtnIsDown){
+            State::faceBtnReleased = true;
             if (State::faceFirstMouse){
                 State::faceLastY = ypos;
                 State::faceFirstMouse = false;
@@ -106,7 +107,10 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             State::rubiksCube.yawAngle = glm::radians(xoffset); 
             State::rubiksCube.pitchAngle = glm::radians(yoffset);
         }
-    } 
+    } else if (State::faceBtnReleased){
+        State::rubiksCube.updateSubCubePositionsAndRotations();
+        State::faceBtnReleased = false;
+    }
 }
 
 #endif

@@ -22,6 +22,7 @@ double State::mouseX;
 double State::mouseY;
 glm::vec3 State::mouseWorldPos;
 bool State::mouseBtnIsDown = false;
+bool State::faceBtnReleased = false;
 bool State::faceRotationBtnIsDown = false;
 
 /*** cube movement ***/

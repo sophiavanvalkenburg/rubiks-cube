@@ -18,13 +18,17 @@ class SubCube
     public:
         bool isSelected;
         glm::mat4 modelMatrix;
+        std::vector<glm::mat4> transformMatrixHistory;
         SubCube(glm::vec3 position, unsigned int id);
+        void setPosition(glm::vec3 pos);
+        void clearRotation();
         glm::vec3 getPosition();
         glm::vec3* getRotation();
         void setRotationOnAxis(Axis axis, float angleOffset);
         glm::mat4 getRotationMatrix(Axis axis);
         glm::mat4 getRotationMatrixOnFace(Axis axis);
-        void getTransformationMatrix(glm::mat4 &transformMatrix, glm::mat4 &rotationMatrix);
+        glm::mat4 getTransformationMatrix(glm::mat4 &rotationMatrix);
+        glm::mat4 multiplyTransformMatrixHistory();
         unsigned int getId();
         unsigned int getFace(Axis axis);
         void addFace(Axis axis, unsigned int faceId);
@@ -63,6 +67,7 @@ class RubiksCube
         glm::vec3 getFaceCenter(unsigned int faceId);
         void printFaces();
         void updateSubCubeRotationAngles(Axis axis, float angleOffset);
+        void updateSubCubePositionsAndRotations();
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;

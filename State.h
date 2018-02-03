@@ -19,6 +19,7 @@ public:
     static float deltaTime;
     static float lastFrame;
     static bool mouseBtnIsDown;
+    static bool faceBtnReleased;
     static bool faceRotationBtnIsDown;
 
     static double mouseX;
