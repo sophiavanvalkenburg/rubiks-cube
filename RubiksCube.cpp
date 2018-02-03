@@ -43,12 +43,21 @@ void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
     }
 };
 
-glm::mat4 SubCube::getRotationMatrix()
+glm::mat4 SubCube::getRotationMatrix(Axis axis)
 {
-    glm::mat4 x = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.x), State::X_AXIS);
-    glm::mat4 y = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.y), State::Y_AXIS);
-    glm::mat4 z = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.z), State::Z_AXIS);
-    return x * y * z;
+    glm::mat4 matrix;
+    switch(axis){
+       case Axis::X:
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.x), State::X_AXIS);
+            break;
+        case Axis::Y: 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.y), State::Y_AXIS); 
+            break;
+        case Axis::Z: 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.z), State::Z_AXIS);
+            break; 
+    }
+    return matrix;
 };
 
 unsigned int SubCube::getId()

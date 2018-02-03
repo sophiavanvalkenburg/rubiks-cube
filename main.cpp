@@ -117,18 +117,25 @@ void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
     drawCubeVertices(VAO, 36);
 }
 
+glm::mat4 getSubCubeRotationMatrixOnAxis(SubCube *subcube, Axis axis)
+{
+    unsigned int faceId = subcube->getFace(axis);
+    glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
+    glm::mat4 translateSubCubeMatrix = glm::translate(glm::mat4(), faceCenter);
+    glm::mat4 inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
+    glm::mat4 localRotationMatrix = subcube->getRotationMatrix(axis);
+    glm::mat4 rotationMatrix  =  inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
+    return rotationMatrix;
+}
+
 void setSubCubeTransformationMatrix(glm::mat4 &out, glm::mat4 &rotationMatrix, SubCube *subcube){
     unsigned int subcubeId = subcube->getId();
-    unsigned int faceId = subcube->getFace(State::faceRotationAxisEnum);
     glm::mat4 transformMatrix = glm::mat4();
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, subcube->getPosition());
-    glm::mat4 localRotationMatrix = subcube->getRotationMatrix();
-    glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
-    glm::mat4 translateSubCubeMatrix;
-    glm::mat4 inverseTranslateSubCubeMatrix;
-    translateSubCubeMatrix = glm::translate(translateSubCubeMatrix, faceCenter);
-    inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
-    rotationMatrix = State::rubiksCube.modelMatrix * inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
+    glm::mat4 xRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::X);
+    glm::mat4 yRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::Y);
+    glm::mat4 zRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::Z);
+    rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
     transformMatrix = rotationMatrix * subcubeTranslateMatrix;
     Util::copyMat4(out, transformMatrix);
 }

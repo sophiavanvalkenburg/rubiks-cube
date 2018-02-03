@@ -22,7 +22,7 @@ class SubCube
         glm::vec3 getPosition();
         glm::vec3* getRotation();
         void setRotationOnAxis(Axis axis, float angleOffset);
-        glm::mat4 getRotationMatrix();
+        glm::mat4 getRotationMatrix(Axis axis);
         unsigned int getId();
         unsigned int getFace(Axis axis);
         void addFace(Axis axis, unsigned int faceId);
