@@ -117,29 +117,6 @@ void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
     drawCubeVertices(VAO, 36);
 }
 
-glm::mat4 getSubCubeRotationMatrixOnAxis(SubCube *subcube, Axis axis)
-{
-    unsigned int faceId = subcube->getFace(axis);
-    glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
-    glm::mat4 translateSubCubeMatrix = glm::translate(glm::mat4(), faceCenter);
-    glm::mat4 inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
-    glm::mat4 localRotationMatrix = subcube->getRotationMatrix(axis);
-    glm::mat4 rotationMatrix  =  inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
-    return rotationMatrix;
-}
-
-void setSubCubeTransformationMatrix(glm::mat4 &out, glm::mat4 &rotationMatrix, SubCube *subcube){
-    unsigned int subcubeId = subcube->getId();
-    glm::mat4 transformMatrix = glm::mat4();
-    glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, subcube->getPosition());
-    glm::mat4 xRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::X);
-    glm::mat4 yRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::Y);
-    glm::mat4 zRotationMatrix = getSubCubeRotationMatrixOnAxis(subcube, Axis::Z);
-    rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
-    transformMatrix = rotationMatrix * subcubeTranslateMatrix;
-    Util::copyMat4(out, transformMatrix);
-}
-
 void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVerticesSize, const GLfloat *cubeVertices)
 {
     bindVertices(VAO, VBO, cubeVertices, cubeVerticesSize);
@@ -156,7 +133,7 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
         // keep the subcube selected if you're moving the face
         if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
         glm::mat4 rotationMatrix;
-        setSubCubeTransformationMatrix(subcube->modelMatrix, rotationMatrix, subcube); 
+        subcube->getTransformationMatrix(subcube->modelMatrix, rotationMatrix); 
         glm::vec3 intersectPoint;
         if (!State::faceRotationBtnIsDown){
             if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
