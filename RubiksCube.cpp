@@ -12,7 +12,8 @@
 SubCube::SubCube(glm::vec3 position, unsigned int id)
 {
     this->position = position;
-    this->rotation = glm::vec3();
+    this->faceRotation = glm::vec3();
+    this->localRotation = glm::vec3();
     this->id = id;
     this->isSelected = false;
     this->modelMatrix = glm::mat4();
@@ -29,27 +30,27 @@ glm::vec3 SubCube::getPosition()
     return this->position;
 };
 
-void SubCube::clearRotation()
+void SubCube::clearFaceRotation()
 {
-    this->rotation = glm::vec3();
+    this->faceRotation = glm::vec3();
 }
 
-glm::vec3* SubCube::getRotation()
+glm::vec3* SubCube::getFaceRotation()
 {
-    return &this->rotation;
+    return &this->faceRotation;
 };
 
 void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
 {
     switch(axis){
         case Axis::X:
-            this->rotation.x += angleOffset; 
+            this->faceRotation.x += angleOffset; 
             break;
         case Axis::Y: 
-            this->rotation.y += angleOffset;
+            this->faceRotation.y += angleOffset;
             break;
         case Axis::Z: 
-            this->rotation.z += angleOffset;
+            this->faceRotation.z += angleOffset;
             break;
     }
 };
@@ -59,13 +60,13 @@ glm::mat4 SubCube::getRotationMatrix(Axis axis)
     glm::mat4 matrix;
     switch(axis){
        case Axis::X:
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.x), State::X_AXIS);
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.x), State::X_AXIS);
             break;
         case Axis::Y: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.y), State::Y_AXIS); 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.y), State::Y_AXIS); 
             break;
         case Axis::Z: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.z), State::Z_AXIS);
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.z), State::Z_AXIS);
             break; 
     }
     return matrix;
@@ -212,10 +213,12 @@ void RubiksCube::updateSubCubePositionsAndRotations()
         glm::mat4 transformMatrix = xRotationMatrix * yRotationMatrix * zRotationMatrix; 
         glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
         s->setPosition(newPos);
-        s->clearRotation();
-        s->transformMatrixHistory.push_back(transformMatrix);
-        glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), newPos);
-        s->modelMatrix = State::rubiksCube.modelMatrix * s->multiplyTransformMatrixHistory() * subcubeTranslateMatrix;
+        s->clearFaceRotation();
+        //this->faces.clear();
+        //this->initFaces();
+        //s->transformMatrixHistory.push_back(transformMatrix);
+        //glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), newPos);
+        //s->modelMatrix = State::rubiksCube.modelMatrix * s->multiplyTransformMatrixHistory() * subcubeTranslateMatrix;
     }
 }
 
