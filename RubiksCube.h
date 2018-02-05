@@ -18,6 +18,7 @@ class SubCube
 
     public:
         bool isSelected;
+        bool isTapped;
         glm::mat4 modelMatrix;
         std::vector<glm::mat4> transformMatrixHistory;
         SubCube(glm::vec3 position, unsigned int id);

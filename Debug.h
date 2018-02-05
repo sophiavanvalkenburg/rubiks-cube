@@ -10,6 +10,13 @@
 std::vector<glm::vec3> mouseClicks;
 std::vector<glm::vec3> hits;
 
+void setSubCubeTapped()
+{
+    std::vector<SubCube*> *subcubes = State::rubiksCube.getSubCubes();
+    SubCube *selectedSubCube = (*subcubes)[State::rubiksCube.selectedSubCubeId];
+    selectedSubCube->isTapped = !selectedSubCube->isTapped;
+}
+
 void drawHits(Shader &shader, GLuint &VAO, GLuint &VBO)
 {
     unsigned int nVertices = hits.size() * 6;

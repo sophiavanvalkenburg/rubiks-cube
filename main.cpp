@@ -112,9 +112,12 @@ void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 {
     glm::mat4 transformMatrix = subcube->modelMatrix;
     GLfloat isSelectedVal = subcube->isSelected ? 1.0f : 0.0f;
+    GLfloat isTappedVal = subcube->isTapped ? 1.0f : 0.0f;
     GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
-    glUniform1f(isSelectedLoc, isSelectedVal);
+    GLuint isTappedLoc = glGetUniformLocation(shader.Program, "isTapped");
     GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
+    glUniform1f(isSelectedLoc, isSelectedVal);
+    glUniform1f(isTappedLoc, isTappedVal);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
     drawCubeVertices(VAO, 36);
 }
