@@ -245,9 +245,26 @@ void RubiksCube::printFaces()
     }
 };
 
+unsigned int RubiksCube::getPosMapValue(std::map<float, unsigned int> &posMap, float posCoord)
+{
+    unsigned int val = posMap[posCoord];
+    if (!val){
+        for(std::map<float, unsigned int>::iterator iter = posMap.begin(); iter != posMap.end(); ++iter)
+        {
+            if (!iter->second) continue; // ensure value is not 0 (reserved for checking map)
+            float key =  iter->first;
+            if (Util::eq(key, posCoord)){
+                val = iter->second;
+                break;
+            }
+        }
+    }
+    return val;
+}
+
 void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s)
 {
-    unsigned int faceIndex = posMap[posCoord];
+    unsigned int faceIndex = this->getPosMapValue(posMap, posCoord);
     if (faceIndex == 0){
         faceIndex = this->faces.size() + 1; // + 1 because we need to reserve 0 for checking map
         posMap[posCoord] = faceIndex;                    

@@ -75,6 +75,7 @@ class RubiksCube
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace> faces;
+        unsigned int getPosMapValue(std::map<float, unsigned int> &posMap, float posCoord);
         void addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s);
         void initFaces();
         void initSubCubes();
