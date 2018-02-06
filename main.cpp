@@ -142,6 +142,7 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
         Util::copyMat4(subcube->modelMatrix, transformMatrix);
         glm::vec3 intersectPoint;
         if (!State::faceRotationBtnIsDown){
+            rotationMatrix =  rotationMatrix * subcube->localRotationMatrix;
             if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
                 float length = glm::length(origin - intersectPoint);
                 if (length < shortestLength){
