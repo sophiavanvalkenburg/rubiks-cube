@@ -13,7 +13,7 @@ SubCube::SubCube(glm::vec3 position, unsigned int id)
 {
     this->position = position;
     this->faceRotation = glm::vec3();
-    this->localRotation = glm::vec3();
+    this->localRotationMatrix = glm::mat4();
     this->id = id;
     this->isSelected = false;
     this->modelMatrix = glm::mat4();
@@ -55,21 +55,26 @@ void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
     }
 };
 
-glm::mat4 SubCube::getRotationMatrix(Axis axis)
+glm::mat4 SubCube::getRotationMatrix(glm::vec3 &rotationVec, Axis axis)
 {
     glm::mat4 matrix;
     switch(axis){
        case Axis::X:
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.x), State::X_AXIS);
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.x), State::X_AXIS);
             break;
         case Axis::Y: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.y), State::Y_AXIS); 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.y), State::Y_AXIS); 
             break;
         case Axis::Z: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->faceRotation.z), State::Z_AXIS);
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.z), State::Z_AXIS);
             break; 
     }
     return matrix;
+};
+
+glm::mat4 SubCube::getFaceRotationMatrix(Axis axis)
+{
+    return this->getRotationMatrix(this->faceRotation, axis);
 };
 
 glm::mat4 SubCube::getRotationMatrixOnFace(Axis axis)
@@ -78,19 +83,23 @@ glm::mat4 SubCube::getRotationMatrixOnFace(Axis axis)
     glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
     glm::mat4 translateSubCubeMatrix = glm::translate(glm::mat4(), faceCenter);
     glm::mat4 inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
-    glm::mat4 localRotationMatrix = this->getRotationMatrix(axis);
+    glm::mat4 localRotationMatrix = this->getFaceRotationMatrix(axis);
     glm::mat4 rotationMatrix  =  inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
-    return rotationMatrix;
+    return localRotationMatrix;
 };
 
 glm::mat4 SubCube::getTransformationMatrix(glm::mat4 &rotationMatrix){
     unsigned int subcubeId = this->getId();
     glm::mat4 transformMatrix = glm::mat4();
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, this->getPosition());
-    glm::mat4 xRotationMatrix = this->getRotationMatrixOnFace(Axis::X);
-    glm::mat4 yRotationMatrix = this->getRotationMatrixOnFace(Axis::Y);
-    glm::mat4 zRotationMatrix = this->getRotationMatrixOnFace(Axis::Z);
-    rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
+    if (State::faceRotationBtnIsDown){
+        glm::mat4 xRotationMatrix = this->getRotationMatrixOnFace(Axis::X);
+        glm::mat4 yRotationMatrix = this->getRotationMatrixOnFace(Axis::Y);
+        glm::mat4 zRotationMatrix = this->getRotationMatrixOnFace(Axis::Z);
+        rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
+    } else {
+        rotationMatrix = State::rubiksCube.modelMatrix * this->localRotationMatrix;
+    }
     transformMatrix = rotationMatrix * subcubeTranslateMatrix;
     return transformMatrix;
 };
@@ -213,9 +222,10 @@ void RubiksCube::updateSubCubePositionsAndRotations()
         glm::mat4 transformMatrix = xRotationMatrix * yRotationMatrix * zRotationMatrix; 
         glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
         s->setPosition(newPos);
-        s->clearFaceRotation();
-        //this->faces.clear();
-        //this->initFaces();
+        s->localRotationMatrix = transformMatrix * s->localRotationMatrix;
+        //s->clearFaceRotation();
+        this->faces.clear();
+        this->initFaces();
         //s->transformMatrixHistory.push_back(transformMatrix);
         //glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), newPos);
         //s->modelMatrix = State::rubiksCube.modelMatrix * s->multiplyTransformMatrixHistory() * subcubeTranslateMatrix;
