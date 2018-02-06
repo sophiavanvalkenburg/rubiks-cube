@@ -58,7 +58,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
         State::rubiksCube.pitchAngle = 0.0f;
         State::rubiksCube.yawAngle = 0.0f;
 
-        if (!State::faceRotationBtnIsDown) setSubCubeTapped();
+        //if (!State::faceRotationBtnIsDown) setSubCubeTapped();
 
         mouseClicks.push_back(Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
     }

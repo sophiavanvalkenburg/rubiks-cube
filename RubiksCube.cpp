@@ -92,15 +92,11 @@ glm::mat4 SubCube::getTransformationMatrix(glm::mat4 &rotationMatrix){
     unsigned int subcubeId = this->getId();
     glm::mat4 transformMatrix = glm::mat4();
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, this->getPosition());
-    if (State::faceRotationBtnIsDown){
-        glm::mat4 xRotationMatrix = this->getRotationMatrixOnFace(Axis::X);
-        glm::mat4 yRotationMatrix = this->getRotationMatrixOnFace(Axis::Y);
-        glm::mat4 zRotationMatrix = this->getRotationMatrixOnFace(Axis::Z);
-        rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
-    } else {
-        rotationMatrix = State::rubiksCube.modelMatrix * this->localRotationMatrix;
-    }
-    transformMatrix = rotationMatrix * subcubeTranslateMatrix;
+    glm::mat4 xRotationMatrix = this->getRotationMatrixOnFace(Axis::X);
+    glm::mat4 yRotationMatrix = this->getRotationMatrixOnFace(Axis::Y);
+    glm::mat4 zRotationMatrix = this->getRotationMatrixOnFace(Axis::Z);
+    rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
+    transformMatrix = rotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
     return transformMatrix;
 };
 
@@ -223,7 +219,7 @@ void RubiksCube::updateSubCubePositionsAndRotations()
         glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
         s->setPosition(newPos);
         s->localRotationMatrix = transformMatrix * s->localRotationMatrix;
-        //s->clearFaceRotation();
+        s->clearFaceRotation();
         this->faces.clear();
         this->initFaces();
         //s->transformMatrixHistory.push_back(transformMatrix);
