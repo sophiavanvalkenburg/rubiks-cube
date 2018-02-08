@@ -58,8 +58,6 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
         State::rubiksCube.pitchAngle = 0.0f;
         State::rubiksCube.yawAngle = 0.0f;
 
-        //if (!State::faceRotationBtnIsDown) setSubCubeTapped();
-
         mouseClicks.push_back(Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
     }
 
@@ -91,7 +89,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             }
             float yoffset = calculatePositionOffset(ypos, State::faceLastY);
             State::faceLastY = ypos;
-            State::rubiksCube.updateSubCubeRotationAngles(State::faceRotationAxisEnum, glm::radians(yoffset));
+            State::rubiksCube.updateFaceRotation(State::faceRotationAxisEnum, glm::radians(yoffset));
         } else {
             if (State::cubeFirstMouse)
             {

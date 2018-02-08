@@ -12,7 +12,6 @@
 SubCube::SubCube(glm::vec3 position, unsigned int id)
 {
     this->position = position;
-    this->faceRotation = glm::vec3();
     this->localRotationMatrix = glm::mat4();
     this->id = id;
     this->isSelected = false;
@@ -30,72 +29,23 @@ glm::vec3 SubCube::getPosition()
     return this->position;
 };
 
-void SubCube::clearFaceRotation()
-{
-    this->faceRotation = glm::vec3();
-}
-
-glm::vec3* SubCube::getFaceRotation()
-{
-    return &this->faceRotation;
-};
-
-void SubCube::setRotationOnAxis(Axis axis, float angleOffset)
-{
-    switch(axis){
-        case Axis::X:
-            this->faceRotation.x += angleOffset; 
-            break;
-        case Axis::Y: 
-            this->faceRotation.y += angleOffset;
-            break;
-        case Axis::Z: 
-            this->faceRotation.z += angleOffset;
-            break;
-    }
-};
-
-glm::mat4 SubCube::getRotationMatrix(glm::vec3 &rotationVec, Axis axis)
-{
-    glm::mat4 matrix;
-    switch(axis){
-       case Axis::X:
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.x), State::X_AXIS);
-            break;
-        case Axis::Y: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.y), State::Y_AXIS); 
-            break;
-        case Axis::Z: 
-            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(rotationVec.z), State::Z_AXIS);
-            break; 
-    }
-    return matrix;
-};
-
 glm::mat4 SubCube::getFaceRotationMatrix(Axis axis)
 {
-    return this->getRotationMatrix(this->faceRotation, axis);
-};
-
-glm::mat4 SubCube::getRotationMatrixOnFace(Axis axis)
-{
     unsigned int faceId = this->getFace(axis);
-    glm::vec3 faceCenter = State::rubiksCube.getFaceCenter(faceId);
-    glm::mat4 translateSubCubeMatrix = glm::translate(glm::mat4(), faceCenter);
-    glm::mat4 inverseTranslateSubCubeMatrix = glm::inverse(translateSubCubeMatrix);
-    glm::mat4 localRotationMatrix = this->getFaceRotationMatrix(axis);
-    glm::mat4 rotationMatrix  =  inverseTranslateSubCubeMatrix * localRotationMatrix * translateSubCubeMatrix; 
-    return localRotationMatrix;
+    CubeFace *face = State::rubiksCube.getFace(faceId);
+    glm::mat4 faceRotationMatrix = face->getRotationMatrix(axis);
+    return faceRotationMatrix;
 };
 
 glm::mat4 SubCube::getTransformationMatrix(glm::mat4 &rotationMatrix){
     unsigned int subcubeId = this->getId();
     glm::mat4 transformMatrix = glm::mat4();
     glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, this->getPosition());
-    glm::mat4 xRotationMatrix = this->getRotationMatrixOnFace(Axis::X);
-    glm::mat4 yRotationMatrix = this->getRotationMatrixOnFace(Axis::Y);
-    glm::mat4 zRotationMatrix = this->getRotationMatrixOnFace(Axis::Z);
+    glm::mat4 xRotationMatrix = this->getFaceRotationMatrix(Axis::X);
+    glm::mat4 yRotationMatrix = this->getFaceRotationMatrix(Axis::Y);
+    glm::mat4 zRotationMatrix = this->getFaceRotationMatrix(Axis::Z);
     rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
+    //std::cout << glm::to_string(xRotationMatrix * yRotationMatrix * zRotationMatrix) << std::endl;
     transformMatrix = rotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
     return transformMatrix;
 };
@@ -107,8 +57,6 @@ glm::mat4 SubCube::multiplyTransformMatrixHistory()
     {
         matrix = transformMatrixHistory[i] * matrix;
     }
-    //glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), this->getPosition());
-    //return State::rubiksCube.modelMatrix * matrix * subcubeTranslateMatrix;
     return matrix;
 }
 
@@ -129,6 +77,17 @@ unsigned int SubCube::getFace(Axis axis)
 
 
 /*** CubeFace ***/
+
+CubeFace::CubeFace(unsigned int id)
+{
+    this->rotation = glm::vec3();
+    this->id = id;
+};
+
+unsigned int CubeFace::getId()
+{
+    return this->id;
+}
 
 float CubeFace::getPositionAverage(float centerPosition, float newPosition, int numSubCubes)
 {
@@ -166,6 +125,43 @@ void CubeFace::addSubCube(SubCube *s)
     this->subcubeIds.push_back(s->getId());
 };
 
+void CubeFace::clearRotation()
+{
+    this->rotation = glm::vec3();
+}
+
+void CubeFace::setRotationOnAxis(Axis axis, float angleOffset)
+{
+    switch(axis){
+        case Axis::X:
+            this->rotation.x += angleOffset; 
+            break;
+        case Axis::Y: 
+            this->rotation.y += angleOffset;
+            break;
+        case Axis::Z: 
+            this->rotation.z += angleOffset;
+            break;
+    }
+};
+
+glm::mat4 CubeFace::getRotationMatrix(Axis axis)
+{
+    glm::mat4 matrix;
+    switch(axis){
+       case Axis::X:
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.x), State::X_AXIS);
+            break;
+        case Axis::Y: 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.y), State::Y_AXIS); 
+            break;
+        case Axis::Z: 
+            matrix = glm::rotate(glm::mat4(), Util::getNearestValidAngle(this->rotation.z), State::Z_AXIS);
+            break; 
+    }
+    return matrix;
+};
+
 void CubeFace::print()
 {
     for (unsigned int i=0; i<this->subcubeIds.size(); i++){
@@ -195,13 +191,18 @@ std::vector<SubCube*>* RubiksCube::getSubCubes()
     return &this->subcubes;
 };
 
-void RubiksCube::updateSubCubeRotationAngles(Axis axis, float angleOffset)
+CubeFace* RubiksCube::getFace(unsigned int id)
 {
-    for (unsigned int i = 0; i < this->subcubes.size(); i++)
+    return this->faces[id];
+}
+
+void RubiksCube::updateFaceRotation(Axis axis, float angleOffset)
+{
+    for (unsigned int i = 0; i < this->faces.size(); i++)
     {
-        SubCube *s = this->subcubes[i];
-        if (s->getFace(axis) == this->selectedFaceId){
-            s->setRotationOnAxis(axis, angleOffset);
+        CubeFace *face = this->faces[i];
+        if (face->getId() == this->selectedFaceId){
+            face->setRotationOnAxis(axis, angleOffset);
         }
     }
 };
@@ -212,36 +213,33 @@ void RubiksCube::updateSubCubePositionsAndRotations()
     {
         SubCube *s = this->subcubes[i];
         glm::vec3 oldPos = s->getPosition();
-        glm::mat4 xRotationMatrix = s->getRotationMatrixOnFace(Axis::X);
-        glm::mat4 yRotationMatrix = s->getRotationMatrixOnFace(Axis::Y);
-        glm::mat4 zRotationMatrix = s->getRotationMatrixOnFace(Axis::Z);
+        glm::mat4 xRotationMatrix = s->getFaceRotationMatrix(Axis::X);
+        glm::mat4 yRotationMatrix = s->getFaceRotationMatrix(Axis::Y);
+        glm::mat4 zRotationMatrix = s->getFaceRotationMatrix(Axis::Z);
         glm::mat4 transformMatrix = xRotationMatrix * yRotationMatrix * zRotationMatrix; 
         glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
         s->setPosition(newPos);
         s->localRotationMatrix = transformMatrix * s->localRotationMatrix;
-        s->clearFaceRotation();
-        this->faces.clear();
-        this->initFaces();
-        //s->transformMatrixHistory.push_back(transformMatrix);
-        //glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), newPos);
-        //s->modelMatrix = State::rubiksCube.modelMatrix * s->multiplyTransformMatrixHistory() * subcubeTranslateMatrix;
     }
+
+    this->faces.clear();
+    this->initFaces();
 }
 
 bool RubiksCube::faceContainsSubCube(unsigned int faceId, unsigned int subcubeId)
 {
-    return this->faces[faceId].containsSubCube(subcubeId);
+    return this->faces[faceId]->containsSubCube(subcubeId);
 };
 
 glm::vec3 RubiksCube::getFaceCenter(unsigned int faceId)
 {
-    return this->faces[faceId].getCenter();
+    return this->faces[faceId]->getCenter();
 };
 
 void RubiksCube::printFaces()
 {
     for (unsigned int i=0; i<this->faces.size(); i++){
-        this->faces[i].print();
+        this->faces[i]->print();
     }
 };
 
@@ -268,12 +266,12 @@ void RubiksCube::addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis ax
     if (faceIndex == 0){
         faceIndex = this->faces.size() + 1; // + 1 because we need to reserve 0 for checking map
         posMap[posCoord] = faceIndex;                    
-        CubeFace cubeface;
+        CubeFace *cubeface = new CubeFace(faceIndex - 1);
         this->faces.push_back(cubeface);
     }
     unsigned int faceId = faceIndex - 1;
-    CubeFace cubeface = this->faces[faceId];
-    cubeface.addSubCube(s);
+    CubeFace *cubeface = this->faces[faceId];
+    cubeface->addSubCube(s);
     s->addFace(axis, faceId);
     this->faces[faceId] = cubeface;
 };
