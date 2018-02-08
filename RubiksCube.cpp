@@ -20,6 +20,26 @@ SubCube::SubCube(const glm::vec3 position, unsigned int id)
     this->transformMatrixHistory = std::vector<glm::mat4>();
 };
 
+bool SubCube::getIsTapped()
+{
+    return this->isTapped;
+}
+
+void SubCube::setIsTapped(bool tapped)
+{
+    this->isTapped = tapped;
+}
+
+bool SubCube::getIsSelected()
+{
+    return this->isSelected;
+}
+
+void SubCube::setIsSelected(bool selected)
+{
+    this->isSelected = selected;
+}
+
 glm::vec3 SubCube::getPosition()
 {
     return this->position;

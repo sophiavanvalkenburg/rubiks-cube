@@ -102,8 +102,8 @@ bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::vec3 origin, fl
 
 void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 {
-    GLfloat isSelectedVal = subcube->isSelected ? 1.0f : 0.0f;
-    GLfloat isTappedVal = subcube->isTapped ? 1.0f : 0.0f;
+    GLfloat isSelectedVal = subcube->getIsSelected() ? 1.0f : 0.0f;
+    GLfloat isTappedVal = subcube->getIsTapped() ? 1.0f : 0.0f;
     GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
     GLuint isTappedLoc = glGetUniformLocation(shader.Program, "isTapped");
     GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
@@ -127,7 +127,7 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     for (int i=0; i<subcubes->size(); i++){
         SubCube *subcube = (*subcubes)[i];
         // keep the subcube selected if you're moving the face
-        if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
+        if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->getIsSelected())) subcube->setIsSelected(false);
         subcube->updateModelMatrix(); 
         glm::vec3 intersectPoint;
         if (!State::faceRotationBtnIsDown){
@@ -144,7 +144,7 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     if (!State::faceRotationBtnIsDown && closestSelectedSubCube){
         State::rubiksCube.setSelectedSubCubeId(closestSelectedSubCube->getId());
         State::rubiksCube.setSelectedFaceId(closestSelectedSubCube->getFace(State::faceRotationAxisEnum));
-        closestSelectedSubCube->isSelected = true;
+        closestSelectedSubCube->setIsSelected(true);
     }
     for (int i=0; i<subcubes->size(); i++){
         drawSubCube(shader, (*subcubes)[i], VAO);

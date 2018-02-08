@@ -14,7 +14,7 @@ void setSubCubeTapped()
 {
     std::vector<SubCube*> *subcubes = State::rubiksCube.getSubCubes();
     SubCube *selectedSubCube = (*subcubes)[State::rubiksCube.getSelectedSubCubeId()];
-    selectedSubCube->isTapped = !selectedSubCube->isTapped;
+    selectedSubCube->setIsTapped(!selectedSubCube->getIsTapped());
 }
 
 void drawHits(Shader &shader, GLuint &VAO, GLuint &VBO)

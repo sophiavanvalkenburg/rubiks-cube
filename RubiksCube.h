@@ -11,6 +11,8 @@ class SubCube
 {
     private:
         unsigned int id;
+        bool isSelected;
+        bool isTapped;
         glm::vec3 position;
         glm::mat4 localRotationMatrix;
         glm::mat4 worldRotationMatrix;
@@ -20,9 +22,11 @@ class SubCube
         glm::mat4 getFaceRotationMatrixForAxis(Axis axis);
 
     public:
-        bool isSelected;
-        bool isTapped;
         SubCube(glm::vec3 position, unsigned int id);
+        bool getIsSelected();
+        bool getIsTapped();
+        void setIsSelected(bool selected);
+        void setIsTapped(bool tapped);
         void setPosition(glm::vec3 pos);
         void setLocalRotationMatrix(glm::mat4 rotationMatrix);
         void setWorldRotationMatrix(glm::mat4 rotationMatrix);
