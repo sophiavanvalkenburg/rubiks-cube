@@ -223,7 +223,6 @@ RubiksCube::RubiksCube()
     this->initFaces();  
     this->pitchAngle = 0.0f;
     this->yawAngle = 0.0f;
-    this->subcubeMargin = 0.025f;
 };
 
 unsigned int RubiksCube::getSelectedSubCubeId(){
@@ -383,6 +382,8 @@ void RubiksCube::initSubCubes()
         this->subcubes.push_back(s);
     }
 };
+
+const float RubiksCube::subcubeMargin = 0.025f;
 
 const std::vector<const glm::vec3> RubiksCube::subcubePositions = {
     glm::vec3(0.0f, 0.0f, 0.0f),

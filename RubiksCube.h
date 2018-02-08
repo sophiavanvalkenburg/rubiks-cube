@@ -50,12 +50,11 @@ class CubeFace
         std::vector<unsigned int> subcubeIds;
         glm::vec3 center;
         glm::vec3 rotation;
-        float getPositionAverage(float centerPosition, float newPosition, int numSubCubes);
+        static float getPositionAverage(float centerPosition, float newPosition, int numSubCubes);
 
     public:
         CubeFace(unsigned int id);
         unsigned int getId();
-        unsigned int getSize();
         glm::vec3 getCenter();
         bool containsSubCube(unsigned int subcubeId);
         void addSubCube(SubCube *s);
@@ -67,9 +66,24 @@ class CubeFace
 
 class RubiksCube
 {
+    private:
+        std::vector<SubCube*> subcubes;
+        std::vector<CubeFace*> faces;
+        unsigned int selectedSubCubeId;
+        unsigned int selectedFaceId;
+        float pitchAngle;
+        float yawAngle;
+        glm::mat4 modelMatrix;
+        glm::mat4 viewMatrix;
+        static unsigned int getPosMapValue(std::map<float, unsigned int> &posMap, float posCoord);
+        void addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s);
+        void initFaces();
+        void initSubCubes();
+        const static std::vector<const glm::vec3> subcubePositions;
+
     public:
         RubiksCube();
-        float subcubeMargin;
+        const static float subcubeMargin;
         std::vector<SubCube*>* getSubCubes();
         CubeFace* getFace(unsigned int id);
         void printFaces();
@@ -88,19 +102,5 @@ class RubiksCube
         void setModelMatrix(glm::mat4 modelMatrix);
         glm::mat4 getViewMatrix();
         void setViewMatrix(glm::mat4 viewMatrix);
-    private:
-        std::vector<SubCube*> subcubes;
-        std::vector<CubeFace*> faces;
-        unsigned int selectedSubCubeId;
-        unsigned int selectedFaceId;
-        float pitchAngle;
-        float yawAngle;
-        glm::mat4 modelMatrix;
-        glm::mat4 viewMatrix;
-        unsigned int getPosMapValue(std::map<float, unsigned int> &posMap, float posCoord);
-        void addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s);
-        void initFaces();
-        void initSubCubes();
-        const static std::vector<const glm::vec3> subcubePositions;
 };
 #endif
