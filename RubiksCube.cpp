@@ -12,7 +12,7 @@
 SubCube::SubCube(glm::vec3 position, unsigned int id)
 {
     this->position = position;
-    this->localRotationMatrix = glm::mat4();
+    this->rotationMatrix = glm::mat4();
     this->id = id;
     this->isSelected = false;
     this->modelMatrix = glm::mat4();
@@ -28,6 +28,16 @@ glm::vec3 SubCube::getPosition()
 {
     return this->position;
 };
+
+void SubCube::setRotationMatrix(glm::mat4 rotationMatrix)
+{
+    this->rotationMatrix = rotationMatrix;
+}
+
+glm::mat4 SubCube::getRotationMatrix()
+{
+    return this->rotationMatrix;
+}
 
 glm::mat4 SubCube::getFaceRotationMatrix(Axis axis)
 {
@@ -45,8 +55,8 @@ glm::mat4 SubCube::getTransformationMatrix(glm::mat4 &rotationMatrix){
     glm::mat4 yRotationMatrix = this->getFaceRotationMatrix(Axis::Y);
     glm::mat4 zRotationMatrix = this->getFaceRotationMatrix(Axis::Z);
     rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
-    //std::cout << glm::to_string(xRotationMatrix * yRotationMatrix * zRotationMatrix) << std::endl;
-    transformMatrix = rotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
+    transformMatrix = rotationMatrix * subcubeTranslateMatrix * this->rotationMatrix;
+    rotationMatrix = rotationMatrix * this->rotationMatrix;
     return transformMatrix;
 };
 
@@ -219,9 +229,10 @@ void RubiksCube::updateSubCubePositionsAndRotations()
         glm::mat4 transformMatrix = xRotationMatrix * yRotationMatrix * zRotationMatrix; 
         glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
         s->setPosition(newPos);
-        s->localRotationMatrix = transformMatrix * s->localRotationMatrix;
+        s->setRotationMatrix(transformMatrix * s->getRotationMatrix());
     }
 
+    // reset faces
     this->faces.clear();
     this->initFaces();
 }
