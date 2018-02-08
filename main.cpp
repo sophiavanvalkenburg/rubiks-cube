@@ -98,14 +98,7 @@ bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::vec3 origin, fl
     return hit;
 }
 
-void updateCubeMatrix()
-{
-    glm::vec3 right = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::vec3 up = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
-    State::rubiksCube.modelMatrix = glm::rotate(State::rubiksCube.modelMatrix, State::rubiksCube.pitchAngle, right);
-    State::rubiksCube.modelMatrix = glm::rotate(State::rubiksCube.modelMatrix, State::rubiksCube.yawAngle, up);
-    State::rubiksCube.viewMatrix = glm::inverse(State::rubiksCube.modelMatrix);
-}
+
 
 void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 {
@@ -123,10 +116,10 @@ void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVerticesSize, const GLfloat *cubeVertices)
 {
     bindVertices(VAO, VBO, cubeVertices, cubeVerticesSize);
-    updateCubeMatrix();
+    State::rubiksCube.updateModelMatrix();
 
     // plane distance works since we don't need to intersect the inside of the cube
-    float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.getSubCubeMargin());
+    float planeDistance = -1.0f * (CubeModel::getCubeSideLengths().z + State::rubiksCube.subcubeMargin);
     glm::vec3 origin = State::cameraPosition;
     std::vector<SubCube*>* subcubes = State::rubiksCube.getSubCubes();
     float shortestLength = 100.0f;
@@ -149,8 +142,8 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     }
     // TODO: reset rubikscube variables somewhere?
     if (!State::faceRotationBtnIsDown && closestSelectedSubCube){
-        State::rubiksCube.selectedSubCubeId = closestSelectedSubCube->getId();
-        State::rubiksCube.selectedFaceId = closestSelectedSubCube->getFace(State::faceRotationAxisEnum);
+        State::rubiksCube.setSelectedSubCubeId(closestSelectedSubCube->getId());
+        State::rubiksCube.setSelectedFaceId(closestSelectedSubCube->getFace(State::faceRotationAxisEnum));
         closestSelectedSubCube->isSelected = true;
     }
     for (int i=0; i<subcubes->size(); i++){

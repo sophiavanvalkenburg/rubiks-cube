@@ -65,26 +65,38 @@ class RubiksCube
 {
     public:
         RubiksCube();
-        unsigned int selectedSubCubeId;
-        unsigned int selectedFaceId;
-        glm::mat4 modelMatrix;
-        glm::mat4 viewMatrix;
-        float pitchAngle;
-        float yawAngle;
-        const float getSubCubeMargin();
+        float subcubeMargin;
         std::vector<SubCube*>* getSubCubes();
         CubeFace* getFace(unsigned int id);
-        bool faceContainsSubCube(unsigned int faceId, unsigned int subcubeId);
-        glm::vec3 getFaceCenter(unsigned int faceId);
         void printFaces();
+        void updateModelMatrix();
         void updateFaceRotation(Axis axis, float angleOffset);
         void updateSubCubePositionsAndRotations();
+        unsigned int getSelectedSubCubeId();
+        void setSelectedSubCubeId(unsigned int id);
+        unsigned int getSelectedFaceId();
+        void setSelectedFaceId(unsigned int id);
+        float getPitchAngle();
+        void setPitchAngle(float angle);
+        float getYawAngle();
+        void setYawAngle(float angle);
+        glm::mat4 getModelMatrix();
+        void setModelMatrix(glm::mat4 modelMatrix);
+        glm::mat4 getViewMatrix();
+        void setViewMatrix(glm::mat4 viewMatrix);
     private:
         std::vector<SubCube*> subcubes;
         std::vector<CubeFace*> faces;
+        unsigned int selectedSubCubeId;
+        unsigned int selectedFaceId;
+        float pitchAngle;
+        float yawAngle;
+        glm::mat4 modelMatrix;
+        glm::mat4 viewMatrix;
         unsigned int getPosMapValue(std::map<float, unsigned int> &posMap, float posCoord);
         void addSubCubeToFace(std::map<float, unsigned int> &posMap, Axis axis, float posCoord, SubCube *s);
         void initFaces();
         void initSubCubes();
+        const static std::vector<const glm::vec3> subcubePositions;
 };
 #endif

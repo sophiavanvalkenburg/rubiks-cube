@@ -9,9 +9,9 @@
 
 /*** SubCube ***/
 
-SubCube::SubCube(glm::vec3 position, unsigned int id)
+SubCube::SubCube(const glm::vec3 position, unsigned int id)
 {
-    this->position = position;
+    Util::copyVec3(this->position, position);
     this->localRotationMatrix = glm::mat4();
     this->worldRotationMatrix = glm::mat4();
     this->modelMatrix = glm::mat4();
@@ -79,8 +79,9 @@ void SubCube::updateModelMatrix(){
     unsigned int subcubeId = this->getId();
     glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), this->getPosition());
     glm::mat4 faceRotationMatrix = this->getFaceRotationMatrix();
-    this->modelMatrix = State::rubiksCube.modelMatrix * faceRotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
-    this->worldRotationMatrix = State::rubiksCube.modelMatrix * faceRotationMatrix * this->localRotationMatrix;
+    glm::mat4 cubeModelMatrix = State::rubiksCube.getModelMatrix();
+    this->modelMatrix = cubeModelMatrix * faceRotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
+    this->worldRotationMatrix = cubeModelMatrix * faceRotationMatrix * this->localRotationMatrix;
 };
 
 glm::mat4 SubCube::multiplyTransformMatrixHistory()
@@ -202,12 +203,56 @@ RubiksCube::RubiksCube()
     this->initFaces();  
     this->pitchAngle = 0.0f;
     this->yawAngle = 0.0f;
+    this->subcubeMargin = 0.025f;
 };
 
-const float RubiksCube::getSubCubeMargin()
-{
-    return 0.025f;
-};
+unsigned int RubiksCube::getSelectedSubCubeId(){
+    return this->selectedSubCubeId;
+}
+
+void RubiksCube::setSelectedSubCubeId(unsigned int id){
+    this->selectedSubCubeId = id;
+}
+
+unsigned int RubiksCube::getSelectedFaceId(){
+    return this->selectedFaceId;
+}
+
+void RubiksCube::setSelectedFaceId(unsigned int id){
+    this->selectedFaceId = id;
+}
+
+float RubiksCube::getPitchAngle(){
+    return this->pitchAngle;
+}
+
+void RubiksCube::setPitchAngle(float angle){
+    this->pitchAngle = angle;
+}
+
+float RubiksCube::getYawAngle(){
+    return this->yawAngle;
+}
+
+void RubiksCube::setYawAngle(float angle){
+    this->yawAngle = angle;
+}
+
+glm::mat4 RubiksCube::getModelMatrix(){
+    return this->modelMatrix;
+}
+
+void RubiksCube::setModelMatrix(glm::mat4 modelMatrix){
+    Util::copyMat4(this->modelMatrix, modelMatrix);   
+}
+
+glm::mat4 RubiksCube::getViewMatrix(){
+    return this->viewMatrix;
+}
+
+void RubiksCube::setViewMatrix(glm::mat4 viewMatrix){
+    Util::copyMat4(this->viewMatrix, viewMatrix);
+}
 
 std::vector<SubCube*>* RubiksCube::getSubCubes()
 {
@@ -217,6 +262,15 @@ std::vector<SubCube*>* RubiksCube::getSubCubes()
 CubeFace* RubiksCube::getFace(unsigned int id)
 {
     return this->faces[id];
+}
+
+void RubiksCube::updateModelMatrix()
+{
+    glm::vec3 right = Util::mat4xVec3(glm::vec3(), this->viewMatrix, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::vec3 up = Util::mat4xVec3(glm::vec3(), this->viewMatrix, glm::vec3(0.0f, 1.0f, 0.0f));
+    this->modelMatrix = glm::rotate(this->modelMatrix, State::rubiksCube.getPitchAngle(), right);
+    this->modelMatrix = glm::rotate(this->modelMatrix, State::rubiksCube.getYawAngle(), up);
+    this->viewMatrix = glm::inverse(this->modelMatrix);
 }
 
 void RubiksCube::updateFaceRotation(Axis axis, float angleOffset)
@@ -246,16 +300,6 @@ void RubiksCube::updateSubCubePositionsAndRotations()
     this->faces.clear();
     this->initFaces();
 }
-
-bool RubiksCube::faceContainsSubCube(unsigned int faceId, unsigned int subcubeId)
-{
-    return this->faces[faceId]->containsSubCube(subcubeId);
-};
-
-glm::vec3 RubiksCube::getFaceCenter(unsigned int faceId)
-{
-    return this->faces[faceId]->getCenter();
-};
 
 void RubiksCube::printFaces()
 {
@@ -314,38 +358,38 @@ void RubiksCube::initFaces()
 
 void RubiksCube::initSubCubes()
 {
-    std::vector<glm::vec3> positions = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.325f, 0.0f, 0.0f),
-        glm::vec3(-0.325f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 0.325f, 0.0f),
-        glm::vec3(0.0f, -0.325f,0.0f),
-        glm::vec3(0.325f, 0.325f, 0.0f),
-        glm::vec3(-0.325f, 0.325f, 0.0f),
-        glm::vec3(0.325f, -0.325f, 0.0f),
-        glm::vec3(-0.325f, -0.325f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 0.325f), 
-        glm::vec3(0.325f, 0.0f, 0.325f),
-        glm::vec3(-0.325f, 0.0f, 0.325f), 
-        glm::vec3(0.0f, 0.325f, 0.325f),
-        glm::vec3(0.0f, -0.325f, 0.325f),
-        glm::vec3(0.325f, 0.325f, 0.325f),
-        glm::vec3(-0.325f, 0.325f, 0.325f),
-        glm::vec3(0.325f, -0.325f, 0.325f),
-        glm::vec3(-0.325f, -0.325f, 0.325f),
-        glm::vec3(0.0f, 0.0f, -0.325f), 
-        glm::vec3(0.325f, 0.0f, -0.325f),
-        glm::vec3(-0.325f, 0.0f, -0.325f), 
-        glm::vec3(0.0f, 0.325f, -0.325f),
-        glm::vec3(0.0f, -0.325f, -0.325f),
-        glm::vec3(0.325f, 0.325f, -0.325f),
-        glm::vec3(-0.325f, 0.325f, -0.325f),
-        glm::vec3(0.325f, -0.325f, -0.325f),
-        glm::vec3(-0.325f, -0.325f, -0.325f)
-        
-    };
-    for (unsigned int i=0; i<positions.size(); i++){
-        SubCube *s = new SubCube(positions[i], i);
+    for (unsigned int i=0; i<RubiksCube::subcubePositions.size(); i++){
+        SubCube *s = new SubCube(RubiksCube::subcubePositions[i], i);
         this->subcubes.push_back(s);
     }
+};
+
+const std::vector<const glm::vec3> RubiksCube::subcubePositions = {
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(0.325f, 0.0f, 0.0f),
+    glm::vec3(-0.325f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 0.325f, 0.0f),
+    glm::vec3(0.0f, -0.325f,0.0f),
+    glm::vec3(0.325f, 0.325f, 0.0f),
+    glm::vec3(-0.325f, 0.325f, 0.0f),
+    glm::vec3(0.325f, -0.325f, 0.0f),
+    glm::vec3(-0.325f, -0.325f, 0.0f),
+    glm::vec3(0.0f, 0.0f, 0.325f), 
+    glm::vec3(0.325f, 0.0f, 0.325f),
+    glm::vec3(-0.325f, 0.0f, 0.325f), 
+    glm::vec3(0.0f, 0.325f, 0.325f),
+    glm::vec3(0.0f, -0.325f, 0.325f),
+    glm::vec3(0.325f, 0.325f, 0.325f),
+    glm::vec3(-0.325f, 0.325f, 0.325f),
+    glm::vec3(0.325f, -0.325f, 0.325f),
+    glm::vec3(-0.325f, -0.325f, 0.325f),
+    glm::vec3(0.0f, 0.0f, -0.325f), 
+    glm::vec3(0.325f, 0.0f, -0.325f),
+    glm::vec3(-0.325f, 0.0f, -0.325f), 
+    glm::vec3(0.0f, 0.325f, -0.325f),
+    glm::vec3(0.0f, -0.325f, -0.325f),
+    glm::vec3(0.325f, 0.325f, -0.325f),
+    glm::vec3(-0.325f, 0.325f, -0.325f),
+    glm::vec3(0.325f, -0.325f, -0.325f),
+    glm::vec3(-0.325f, -0.325f, -0.325f)
 };

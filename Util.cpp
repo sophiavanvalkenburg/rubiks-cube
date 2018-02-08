@@ -16,7 +16,7 @@ void Util::copyMat4(glm::mat4 &out, glm::mat4 &in){
     }
 }
 
-void Util::copyVec3(glm::vec3 &out, glm::vec3 &v){
+void Util::copyVec3(glm::vec3 &out, const glm::vec3 &v){
     out.x = v.x;
     out.y = v.y;
     out.z = v.z;

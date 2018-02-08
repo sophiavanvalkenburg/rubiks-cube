@@ -29,7 +29,7 @@ void setRotationAxis(GLFWwindow* window){
 
 void resetAll()
 {
-    State::rubiksCube.modelMatrix = glm::mat4();
+    State::rubiksCube.setModelMatrix(glm::mat4());
     mouseClicks = std::vector<glm::vec3>();
     hits = std::vector<glm::vec3>();
 }
@@ -55,10 +55,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods){
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
         State::mouseBtnIsDown = false;
         State::cubeFirstMouse = true;
-        State::rubiksCube.pitchAngle = 0.0f;
-        State::rubiksCube.yawAngle = 0.0f;
+        State::rubiksCube.setPitchAngle(0.0f);
+        State::rubiksCube.setYawAngle(0.0f);
 
-        mouseClicks.push_back(Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, State::mouseWorldPos));
+        mouseClicks.push_back(Util::mat4xVec3(glm::vec3(), State::rubiksCube.getViewMatrix(), State::mouseWorldPos));
     }
 
 }
@@ -104,8 +104,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             State::cubeLastX = xpos;
             State::cubeLastY = ypos;
 
-            State::rubiksCube.yawAngle = glm::radians(xoffset); 
-            State::rubiksCube.pitchAngle = glm::radians(yoffset);
+            State::rubiksCube.setYawAngle(glm::radians(xoffset)); 
+            State::rubiksCube.setPitchAngle(glm::radians(yoffset));
         }
     } else if (State::faceBtnReleased){
         State::rubiksCube.updateSubCubePositionsAndRotations();

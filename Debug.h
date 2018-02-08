@@ -13,7 +13,7 @@ std::vector<glm::vec3> hits;
 void setSubCubeTapped()
 {
     std::vector<SubCube*> *subcubes = State::rubiksCube.getSubCubes();
-    SubCube *selectedSubCube = (*subcubes)[State::rubiksCube.selectedSubCubeId];
+    SubCube *selectedSubCube = (*subcubes)[State::rubiksCube.getSelectedSubCubeId()];
     selectedSubCube->isTapped = !selectedSubCube->isTapped;
 }
 
@@ -39,7 +39,7 @@ void drawMouseClicks(Shader &shader, GLuint &VAO, GLuint &VBO)
     glm::vec3 origin;
     Util::copyVec3(origin, State::cameraPosition);
     origin.z -= 0.01; // slightly in front of camera so we can see it
-    glm::vec3 cam = Util::mat4xVec3(glm::vec3(), State::rubiksCube.viewMatrix, origin);
+    glm::vec3 cam = Util::mat4xVec3(glm::vec3(), State::rubiksCube.getViewMatrix(), origin);
 
     for (unsigned int i=0; i<mouseClicks.size(); i++){
         GLfloat lineVertices[12] = {
