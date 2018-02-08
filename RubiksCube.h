@@ -12,23 +12,27 @@ class SubCube
     private:
         unsigned int id;
         glm::vec3 position;
-        glm::mat4 rotationMatrix;
+        glm::mat4 localRotationMatrix;
+        glm::mat4 worldRotationMatrix;
         glm::mat4 modelMatrix;
         std::map<Axis, unsigned int> faceMap;
         std::vector<glm::mat4> transformMatrixHistory;
+        glm::mat4 getFaceRotationMatrixForAxis(Axis axis);
 
     public:
         bool isSelected;
         bool isTapped;
         SubCube(glm::vec3 position, unsigned int id);
         void setPosition(glm::vec3 pos);
-        void setRotationMatrix(glm::mat4 rotationMatrix);
+        void setLocalRotationMatrix(glm::mat4 rotationMatrix);
+        void setWorldRotationMatrix(glm::mat4 rotationMatrix);
         void setModelMatrix(glm::mat4 modelMatrix);
         glm::vec3 getPosition();
-        glm::mat4 getRotationMatrix();
+        glm::mat4 getLocalRotationMatrix();
+        glm::mat4 getWorldRotationMatrix();
         glm::mat4 getModelMatrix();
-        glm::mat4 getFaceRotationMatrix(Axis axis);
-        glm::mat4 getTransformationMatrix(glm::mat4 &rotationMatrix);
+        void updateModelMatrix();
+        glm::mat4 getFaceRotationMatrix();
         glm::mat4 multiplyTransformMatrixHistory();
         unsigned int getId();
         unsigned int getFace(Axis axis);

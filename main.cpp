@@ -62,13 +62,13 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
 }
 
 
-bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix, glm::vec3 origin, glm::vec3 intersectRay, float planeDistance)
+bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::vec3 origin, glm::vec3 intersectRay, float planeDistance)
 {
     const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
     for (unsigned int i=0; i<normals.size(); i++){
-        glm::vec3 normal = Util::mat4xVec3(glm::vec3(), rotationMatrix, normals[i]);
+        glm::vec3 normal = Util::mat4xVec3(glm::vec3(), subcube->getWorldRotationMatrix(), normals[i]);
         if (!intersectPlane(intersectPoint, origin, intersectRay, normal, planeDistance)) continue;
         Util::copyVec3(out, intersectPoint);
         glm::vec3 max = facesMinMax[2 * i];
@@ -84,11 +84,11 @@ bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix
 }
 
 
-bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix, glm::vec3 origin, float planeDistance)
+bool testIntersectSubcube(glm::vec3 &out, SubCube *subcube, glm::vec3 origin, float planeDistance)
 {
     glm::vec3 intersectRay;
     Util::copyVec3(intersectRay, State::mouseWorldPos);
-    bool hit = intersectSubCube(out, subcube, rotationMatrix, origin, intersectRay, planeDistance);
+    bool hit = intersectSubCube(out, subcube, origin, intersectRay, planeDistance);
 
     hits.push_back(out);
     if (hit){
@@ -135,12 +135,10 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
         SubCube *subcube = (*subcubes)[i];
         // keep the subcube selected if you're moving the face
         if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
-        glm::mat4 rotationMatrix;
-        glm::mat4 transformMatrix = subcube->getTransformationMatrix(rotationMatrix); 
-        subcube->setModelMatrix(transformMatrix);
+        subcube->updateModelMatrix(); 
         glm::vec3 intersectPoint;
         if (!State::faceRotationBtnIsDown){
-            if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){
+            if (testIntersectSubcube(intersectPoint, subcube, origin, planeDistance)){
                 float length = glm::length(origin - intersectPoint);
                 if (length < shortestLength){
                     shortestLength = length;

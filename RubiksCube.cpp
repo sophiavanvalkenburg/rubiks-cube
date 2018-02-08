@@ -12,23 +12,27 @@
 SubCube::SubCube(glm::vec3 position, unsigned int id)
 {
     this->position = position;
-    this->rotationMatrix = glm::mat4();
+    this->localRotationMatrix = glm::mat4();
+    this->worldRotationMatrix = glm::mat4();
+    this->modelMatrix = glm::mat4();
     this->id = id;
     this->isSelected = false;
-    this->modelMatrix = glm::mat4();
     this->transformMatrixHistory = std::vector<glm::mat4>();
 };
-
-
 
 glm::vec3 SubCube::getPosition()
 {
     return this->position;
 };
 
-glm::mat4 SubCube::getRotationMatrix()
+glm::mat4 SubCube::getLocalRotationMatrix()
 {
-    return this->rotationMatrix;
+    return this->localRotationMatrix;
+}
+
+glm::mat4 SubCube::getWorldRotationMatrix()
+{
+    return this->worldRotationMatrix;
 }
 
 glm::mat4 SubCube::getModelMatrix()
@@ -41,9 +45,14 @@ void SubCube::setPosition(glm::vec3 pos)
     Util::copyVec3(this->position, pos);
 }
 
-void SubCube::setRotationMatrix(glm::mat4 rotationMatrix)
+void SubCube::setLocalRotationMatrix(glm::mat4 rotationMatrix)
 {
-    Util::copyMat4(this->rotationMatrix, rotationMatrix);
+    Util::copyMat4(this->localRotationMatrix, rotationMatrix);
+}
+
+void SubCube::setWorldRotationMatrix(glm::mat4 rotationMatrix)
+{
+    Util::copyMat4(this->worldRotationMatrix, rotationMatrix);
 }
 
 void SubCube::setModelMatrix(glm::mat4 modelMatrix)
@@ -51,25 +60,27 @@ void SubCube::setModelMatrix(glm::mat4 modelMatrix)
     Util::copyMat4(this->modelMatrix, modelMatrix);
 }
 
-glm::mat4 SubCube::getFaceRotationMatrix(Axis axis)
+glm::mat4 SubCube::getFaceRotationMatrixForAxis(Axis axis)
 {
     unsigned int faceId = this->getFace(axis);
     CubeFace *face = State::rubiksCube.getFace(faceId);
-    glm::mat4 faceRotationMatrix = face->getRotationMatrix(axis);
-    return faceRotationMatrix;
+    return face->getRotationMatrix(axis);
 };
 
-glm::mat4 SubCube::getTransformationMatrix(glm::mat4 &rotationMatrix){
+glm::mat4 SubCube::getFaceRotationMatrix()
+{
+    glm::mat4 xRotationMatrix = this->getFaceRotationMatrixForAxis(Axis::X);
+    glm::mat4 yRotationMatrix = this->getFaceRotationMatrixForAxis(Axis::Y);
+    glm::mat4 zRotationMatrix = this->getFaceRotationMatrixForAxis(Axis::Z);
+    return xRotationMatrix * yRotationMatrix * zRotationMatrix;
+};
+
+void SubCube::updateModelMatrix(){
     unsigned int subcubeId = this->getId();
-    glm::mat4 transformMatrix = glm::mat4();
-    glm::mat4 subcubeTranslateMatrix = glm::translate(transformMatrix, this->getPosition());
-    glm::mat4 xRotationMatrix = this->getFaceRotationMatrix(Axis::X);
-    glm::mat4 yRotationMatrix = this->getFaceRotationMatrix(Axis::Y);
-    glm::mat4 zRotationMatrix = this->getFaceRotationMatrix(Axis::Z);
-    rotationMatrix = State::rubiksCube.modelMatrix * xRotationMatrix * yRotationMatrix * zRotationMatrix;
-    transformMatrix = rotationMatrix * subcubeTranslateMatrix * this->rotationMatrix;
-    rotationMatrix = rotationMatrix * this->rotationMatrix;
-    return transformMatrix;
+    glm::mat4 subcubeTranslateMatrix = glm::translate(glm::mat4(), this->getPosition());
+    glm::mat4 faceRotationMatrix = this->getFaceRotationMatrix();
+    this->modelMatrix = State::rubiksCube.modelMatrix * faceRotationMatrix * subcubeTranslateMatrix * this->localRotationMatrix;
+    this->worldRotationMatrix = State::rubiksCube.modelMatrix * faceRotationMatrix * this->localRotationMatrix;
 };
 
 glm::mat4 SubCube::multiplyTransformMatrixHistory()
@@ -235,13 +246,10 @@ void RubiksCube::updateSubCubePositionsAndRotations()
     {
         SubCube *s = this->subcubes[i];
         glm::vec3 oldPos = s->getPosition();
-        glm::mat4 xRotationMatrix = s->getFaceRotationMatrix(Axis::X);
-        glm::mat4 yRotationMatrix = s->getFaceRotationMatrix(Axis::Y);
-        glm::mat4 zRotationMatrix = s->getFaceRotationMatrix(Axis::Z);
-        glm::mat4 transformMatrix = xRotationMatrix * yRotationMatrix * zRotationMatrix; 
-        glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), transformMatrix, oldPos);
+        glm::mat4 faceRotationMatrix = s->getFaceRotationMatrix(); 
+        glm::vec3 newPos = Util::mat4xVec3(glm::vec3(), faceRotationMatrix, oldPos);
         s->setPosition(newPos);
-        s->setRotationMatrix(transformMatrix * s->getRotationMatrix());
+        s->setLocalRotationMatrix(faceRotationMatrix * s->getLocalRotationMatrix());
     }
 
     // reset faces
