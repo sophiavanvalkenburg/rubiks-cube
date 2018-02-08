@@ -55,7 +55,6 @@ class CubeFace
         glm::vec3 getCenter();
         bool containsSubCube(unsigned int subcubeId);
         void addSubCube(SubCube *s);
-        void clearRotation();
         void setRotationOnAxis(Axis axis, float angleOffset);
         glm::mat4 getRotationMatrix(Axis axis);
         void print();

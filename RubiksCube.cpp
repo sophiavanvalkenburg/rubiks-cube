@@ -127,11 +127,6 @@ float CubeFace::getPositionAverage(float centerPosition, float newPosition, int 
     return (numSubCubes * centerPosition + newPosition) / (numSubCubes + 1);
 };
 
-unsigned int CubeFace::getSize()
-{
-    return subcubeIds.size();
-};
-
 glm::vec3 CubeFace::getCenter()
 {
     return this->center;
@@ -149,19 +144,14 @@ void CubeFace::addSubCube(SubCube *s)
 {
     unsigned int numSubCubes = this->subcubeIds.size();
     glm::vec3 subcubePos = s->getPosition();
-    float centerX = getPositionAverage(this->center.x, subcubePos.x, numSubCubes);
-    float centerY = getPositionAverage(this->center.y, subcubePos.y, numSubCubes);
-    float centerZ = getPositionAverage(this->center.z, subcubePos.z, numSubCubes);
+    float centerX = this->getPositionAverage(this->center.x, subcubePos.x, numSubCubes);
+    float centerY = this->getPositionAverage(this->center.y, subcubePos.y, numSubCubes);
+    float centerZ = this->getPositionAverage(this->center.z, subcubePos.z, numSubCubes);
     this->center.x = centerX;
     this->center.y = centerY;
     this->center.z = centerZ;
     this->subcubeIds.push_back(s->getId());
 };
-
-void CubeFace::clearRotation()
-{
-    this->rotation = glm::vec3();
-}
 
 void CubeFace::setRotationOnAxis(Axis axis, float angleOffset)
 {
