@@ -64,7 +64,6 @@ bool intersectPlane(glm::vec3 &out, glm::vec3 origin, glm::vec3 intersectRay, gl
 
 bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix, glm::vec3 origin, glm::vec3 intersectRay, float planeDistance)
 {
-    glm::mat4 transformMatrix = subcube->modelMatrix;
     const std::vector<glm::vec3> normals = CubeModel::getFaceNormals();
     const std::vector<glm::vec3> facesMinMax = CubeModel::getFacesMinMax();
     glm::vec3 intersectPoint;
@@ -74,7 +73,7 @@ bool intersectSubCube(glm::vec3 &out, SubCube *subcube, glm::mat4 rotationMatrix
         Util::copyVec3(out, intersectPoint);
         glm::vec3 max = facesMinMax[2 * i];
         glm::vec3 min = facesMinMax[2 * i + 1];
-        glm::vec3 intersectPointInv = Util::mat4xVec3(glm::vec3(), glm::inverse(transformMatrix), intersectPoint);
+        glm::vec3 intersectPointInv = Util::mat4xVec3(glm::vec3(), glm::inverse(subcube->getModelMatrix()), intersectPoint);
         if (Util::lte(intersectPointInv.x, max.x) && Util::lte(intersectPointInv.y, max.y) && Util::lte(intersectPointInv.z, max.z) &&
           Util::gte(intersectPointInv.x, min.x) && Util::gte(intersectPointInv.y, min.y) && Util::gte(intersectPointInv.z, min.z)) 
         {
@@ -110,7 +109,6 @@ void updateCubeMatrix()
 
 void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
 {
-    glm::mat4 transformMatrix = subcube->modelMatrix;
     GLfloat isSelectedVal = subcube->isSelected ? 1.0f : 0.0f;
     GLfloat isTappedVal = subcube->isTapped ? 1.0f : 0.0f;
     GLuint isSelectedLoc = glGetUniformLocation(shader.Program, "isSelected");
@@ -118,7 +116,7 @@ void drawSubCube(Shader &shader, SubCube *subcube, GLuint &VAO)
     GLuint modelLoc = glGetUniformLocation(shader.Program, "model");
     glUniform1f(isSelectedLoc, isSelectedVal);
     glUniform1f(isTappedLoc, isTappedVal);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformMatrix));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(subcube->getModelMatrix()));
     drawCubeVertices(VAO, 36);
 }
 
@@ -139,7 +137,7 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
         if (!State::faceRotationBtnIsDown || (State::faceRotationBtnIsDown && !subcube->isSelected)) subcube->isSelected = false;
         glm::mat4 rotationMatrix;
         glm::mat4 transformMatrix = subcube->getTransformationMatrix(rotationMatrix); 
-        Util::copyMat4(subcube->modelMatrix, transformMatrix);
+        subcube->setModelMatrix(transformMatrix);
         glm::vec3 intersectPoint;
         if (!State::faceRotationBtnIsDown){
             if (testIntersectSubcube(intersectPoint, subcube, rotationMatrix, origin, planeDistance)){

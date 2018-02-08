@@ -19,24 +19,36 @@ SubCube::SubCube(glm::vec3 position, unsigned int id)
     this->transformMatrixHistory = std::vector<glm::mat4>();
 };
 
-void SubCube::setPosition(glm::vec3 pos)
-{
-    Util::copyVec3(this->position, pos);
-}
+
 
 glm::vec3 SubCube::getPosition()
 {
     return this->position;
 };
 
-void SubCube::setRotationMatrix(glm::mat4 rotationMatrix)
-{
-    this->rotationMatrix = rotationMatrix;
-}
-
 glm::mat4 SubCube::getRotationMatrix()
 {
     return this->rotationMatrix;
+}
+
+glm::mat4 SubCube::getModelMatrix()
+{
+    return this->modelMatrix;
+}
+
+void SubCube::setPosition(glm::vec3 pos)
+{
+    Util::copyVec3(this->position, pos);
+}
+
+void SubCube::setRotationMatrix(glm::mat4 rotationMatrix)
+{
+    Util::copyMat4(this->rotationMatrix, rotationMatrix);
+}
+
+void SubCube::setModelMatrix(glm::mat4 modelMatrix)
+{
+    Util::copyMat4(this->modelMatrix, modelMatrix);
 }
 
 glm::mat4 SubCube::getFaceRotationMatrix(Axis axis)
