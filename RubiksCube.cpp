@@ -143,6 +143,21 @@ unsigned int CubeFace::getId()
     return this->id;
 }
 
+bool CubeFace::angleIsDirty(float angle)
+{
+    float validAngle = Util::getNearestValidAngle(angle);
+    //std::cout << validAngle << std::endl;
+    if (!validAngle) return false;
+    float integer;
+    float fract = modf(validAngle / M_PI_2, &integer);
+    return fract != 0.0f;
+}
+
+bool CubeFace::isDirty()
+{
+    return CubeFace::angleIsDirty(this->rotation.x) || CubeFace::angleIsDirty(this->rotation.y) || CubeFace::angleIsDirty(this->rotation.z);
+}
+
 float CubeFace::getPositionAverage(float centerPosition, float newPosition, int numSubCubes)
 {
     return (numSubCubes * centerPosition + newPosition) / (numSubCubes + 1);
@@ -187,6 +202,7 @@ void CubeFace::setRotationOnAxis(Axis axis, float angleOffset)
             this->rotation.z += angleOffset;
             break;
     }
+    
 };
 
 glm::mat4 CubeFace::getRotationMatrix(Axis axis)
@@ -281,6 +297,15 @@ std::vector<SubCube*>* RubiksCube::getSubCubes()
 CubeFace* RubiksCube::getFace(unsigned int id)
 {
     return this->faces[id];
+}
+
+bool RubiksCube::isDirty()
+{
+    for(unsigned int i = 0; i < this->faces.size(); i++)
+    {
+        if(this->faces[i]->isDirty()) return true;
+    }
+    return false;
 }
 
 void RubiksCube::updateModelMatrix()

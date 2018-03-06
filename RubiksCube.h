@@ -51,10 +51,12 @@ class CubeFace
         glm::vec3 center;
         glm::vec3 rotation;
         static float getPositionAverage(float centerPosition, float newPosition, int numSubCubes);
+        static bool angleIsDirty(float angle);
 
     public:
         CubeFace(unsigned int id);
         unsigned int getId();
+        bool isDirty();
         glm::vec3 getCenter();
         bool containsSubCube(unsigned int subcubeId);
         void addSubCube(SubCube *s);
@@ -86,6 +88,7 @@ class RubiksCube
         const static float subcubeMargin;
         std::vector<SubCube*>* getSubCubes();
         CubeFace* getFace(unsigned int id);
+        bool isDirty();
         void printFaces();
         void updateModelMatrix();
         void updateFaceRotation(Axis axis, float angleOffset);

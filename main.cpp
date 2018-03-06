@@ -140,11 +140,12 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
             }
         }
     }
-    // TODO: reset rubikscube variables somewhere?
-    if (!State::faceRotationBtnIsDown && closestSelectedSubCube){
-        State::rubiksCube.setSelectedSubCubeId(closestSelectedSubCube->getId());
-        State::rubiksCube.setSelectedFaceId(closestSelectedSubCube->getFace(State::faceRotationAxisEnum));
-        closestSelectedSubCube->setIsSelected(true);
+    if (!State::faceRotationBtnIsDown){
+        if (closestSelectedSubCube){
+            State::rubiksCube.setSelectedSubCubeId(closestSelectedSubCube->getId());
+            State::rubiksCube.setSelectedFaceId(closestSelectedSubCube->getFace(State::faceRotationAxisEnum));
+            closestSelectedSubCube->setIsSelected(true);
+        } 
     }
     for (int i=0; i<subcubes->size(); i++){
         drawSubCube(shader, (*subcubes)[i], VAO);

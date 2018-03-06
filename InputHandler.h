@@ -82,14 +82,19 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
 
     if (State::mouseBtnIsDown){
         if (State::faceRotationBtnIsDown){
-            State::faceBtnReleased = true;
-            if (State::faceFirstMouse){
+            CubeFace *face = State::rubiksCube.getFace(State::rubiksCube.getSelectedFaceId());
+            // only move the face that's dirty
+            if ((face && face->isDirty()) || !State::rubiksCube.isDirty()){
+                State::faceBtnReleased = true;
+                if (State::faceFirstMouse){
+                    State::faceLastY = ypos;
+                    State::faceFirstMouse = false;
+                }
+                float yoffset = calculatePositionOffset(ypos, State::faceLastY);
                 State::faceLastY = ypos;
-                State::faceFirstMouse = false;
+                State::rubiksCube.updateFaceRotation(State::faceRotationAxisEnum, glm::radians(yoffset));
+        
             }
-            float yoffset = calculatePositionOffset(ypos, State::faceLastY);
-            State::faceLastY = ypos;
-            State::rubiksCube.updateFaceRotation(State::faceRotationAxisEnum, glm::radians(yoffset));
         } else {
             if (State::cubeFirstMouse)
             {
@@ -108,7 +113,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
             State::rubiksCube.setPitchAngle(glm::radians(yoffset));
         }
     } else if (State::faceBtnReleased){
-        State::rubiksCube.updateSubCubePositionsAndRotations();
+        if (!State::rubiksCube.isDirty()) State::rubiksCube.updateSubCubePositionsAndRotations();
         State::faceBtnReleased = false;
     }
 }
