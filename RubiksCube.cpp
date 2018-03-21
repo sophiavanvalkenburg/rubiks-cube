@@ -249,8 +249,8 @@ void RubiksCube::setSelectedSubCubeId(unsigned int id){
     this->selectedSubCubeId = id;
 }
 
-unsigned int RubiksCube::getSelectedFaceId(){
-    return this->selectedFaceId;
+unsigned int RubiksCube::getSelectedFaceId(Axis axis){
+    return this->subcubes[this->selectedSubCubeId]->getFace(axis);
 }
 
 void RubiksCube::setSelectedFaceId(unsigned int id){
@@ -316,17 +316,6 @@ void RubiksCube::updateModelMatrix()
     this->modelMatrix = glm::rotate(this->modelMatrix, State::rubiksCube.getYawAngle(), up);
     this->viewMatrix = glm::inverse(this->modelMatrix);
 }
-
-void RubiksCube::updateFaceRotation(Axis axis, float angleOffset)
-{
-    for (unsigned int i = 0; i < this->faces.size(); i++)
-    {
-        CubeFace *face = this->faces[i];
-        if (face->getId() == this->selectedFaceId){
-            face->setRotationOnAxis(axis, angleOffset);
-        }
-    }
-};
 
 void RubiksCube::updateSubCubePositionsAndRotations()
 {

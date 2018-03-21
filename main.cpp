@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "shader.h"
 #include "Util.h"
@@ -143,7 +144,6 @@ void drawCubes(Shader &shader, GLuint &VAO, GLuint &VBO, const size_t cubeVertic
     if (!State::faceRotationBtnIsDown){
         if (closestSelectedSubCube){
             State::rubiksCube.setSelectedSubCubeId(closestSelectedSubCube->getId());
-            State::rubiksCube.setSelectedFaceId(closestSelectedSubCube->getFace(State::faceRotationAxisEnum));
             closestSelectedSubCube->setIsSelected(true);
         } 
     }

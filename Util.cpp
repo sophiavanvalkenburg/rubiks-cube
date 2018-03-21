@@ -1,4 +1,5 @@
 #include "Util.h"
+#include "RubiksCube.h"
 #include <glm/glm.hpp>
 #include <iostream>
 
@@ -24,6 +25,20 @@ void Util::copyVec3(glm::vec3 &out, const glm::vec3 &v){
 
 void Util::printVec3(glm::vec3 &v){
     std::cout << v.x << " " << v.y << " " << v.z << std::endl;
+}
+
+void Util::printAxis(Axis axis) {
+    switch(axis) {
+        case Axis::X:
+            std::cout << "X" << std::endl;
+            break;
+        case Axis::Y:
+            std::cout << "Y" << std::endl;
+            break;
+        case Axis::Z:
+            std::cout << "Z" << std::endl;
+            break;
+    }
 }
 
 glm::vec3 Util::mat4xVec3(glm::vec3 out, const glm::mat4 m, const glm::vec3 v)

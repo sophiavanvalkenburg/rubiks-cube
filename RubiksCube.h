@@ -91,11 +91,10 @@ class RubiksCube
         bool isDirty();
         void printFaces();
         void updateModelMatrix();
-        void updateFaceRotation(Axis axis, float angleOffset);
         void updateSubCubePositionsAndRotations();
         unsigned int getSelectedSubCubeId();
         void setSelectedSubCubeId(unsigned int id);
-        unsigned int getSelectedFaceId();
+        unsigned int getSelectedFaceId(Axis axis);
         void setSelectedFaceId(unsigned int id);
         float getPitchAngle();
         void setPitchAngle(float angle);

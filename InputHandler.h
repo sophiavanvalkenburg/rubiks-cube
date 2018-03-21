@@ -82,7 +82,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
 
     if (State::mouseBtnIsDown){
         if (State::faceRotationBtnIsDown){
-            CubeFace *face = State::rubiksCube.getFace(State::rubiksCube.getSelectedFaceId());
+            CubeFace *face = State::rubiksCube.getFace(State::rubiksCube.getSelectedFaceId(State::faceRotationAxisEnum));
             // only move the face that's dirty
             if ((face && face->isDirty()) || !State::rubiksCube.isDirty()){
                 State::faceBtnReleased = true;
@@ -92,8 +92,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos){
                 }
                 float yoffset = calculatePositionOffset(ypos, State::faceLastY);
                 State::faceLastY = ypos;
-                State::rubiksCube.updateFaceRotation(State::faceRotationAxisEnum, glm::radians(yoffset));
-        
+                face->setRotationOnAxis(State::faceRotationAxisEnum, glm::radians(yoffset));
             }
         } else {
             if (State::cubeFirstMouse)
