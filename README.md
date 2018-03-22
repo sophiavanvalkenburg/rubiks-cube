@@ -1,5 +1,7 @@
 # rubiks-cube
 
+![](https://github.com/sophiavanvalkenburg/rubiks-cube/blob/master/demo.gif)
+
 ## Instructions for running
 Mac OSX: `$clang++ CubeModel.cpp RubiksCube.cpp State.cpp Util.cpp main.cpp -std=c++11 -stdlib=libc++ -lGLEW -lglfw3 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo`
 
