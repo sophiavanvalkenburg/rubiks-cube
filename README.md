@@ -1,4 +1,4 @@
-# rubiks-cube
+# Rubiks Cube Simulator
 
 ![](https://github.com/sophiavanvalkenburg/rubiks-cube/blob/master/demo.gif)
 
