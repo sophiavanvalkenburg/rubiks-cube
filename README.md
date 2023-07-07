@@ -1,4 +1,6 @@
-# rubiks-cube
+# Rubiks Cube Simulator
+
+![](https://github.com/sophiavanvalkenburg/rubiks-cube/blob/master/demo.gif)
 
 ## Instructions for running
 Mac OSX: `$clang++ CubeModel.cpp RubiksCube.cpp State.cpp Util.cpp main.cpp -std=c++11 -stdlib=libc++ -lGLEW -lglfw3 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo`
@@ -6,6 +8,10 @@ Mac OSX: `$clang++ CubeModel.cpp RubiksCube.cpp State.cpp Util.cpp main.cpp -std
 ## MVP features
 * User can rotate the cube to view in different angles by dragging the mouse
 * User can rotate individual faces by holding down the A (x-axis), S (y-axis), or D (z-axis) keys while dragging the mouse vertically
+
+## Bugs / Issues
+* After rotating the cube for a while, selection will start to flicker
+* A/S/D face rotation keys don't change when you rotate the cube, so they will appear to be reversed
 
 ## Bonus features
 * To rotate individual faces, the user drags the mouse in the direction they want to rotate the face instead of holding down a key
