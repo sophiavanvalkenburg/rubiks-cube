@@ -1,0 +1,1 @@
+clang++ CubeModel.cpp RubiksCube.cpp State.cpp Util.cpp main.cpp $1 -std=c++11 -stdlib=libc++ -lGLEW -lglfw3 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
